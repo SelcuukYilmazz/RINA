@@ -39,7 +39,7 @@ def stackImages(scale,imgArray):
 
     # Checking Data Type
 
-    rowsAvaliable = isinstance(imgArray[0],list)
+    rowsAvailable = isinstance(imgArray[0],list)
 
     # Taking Variables
 
@@ -48,7 +48,7 @@ def stackImages(scale,imgArray):
 
     # If Data is List Then Go
 
-    if rowsAvaliable:
+    if rowsAvailable:
         for x in range (0,rows):
             for y in range (0,cols):
 
