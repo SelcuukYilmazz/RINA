@@ -2,30 +2,34 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2 as cv
 
+
+#######################################################################################################################
 #  Functions
     # Getting Contours Of Image
 def getContours(img,imgContour):
-    contours,hierarchy = cv.findContours(img,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_NONE)
+    contours,hierarchy = cv.findContours(img,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         area = cv.contourArea(cnt)
-        if area > 2000:
+        if area > 300:
 
             # Reduce Mistakes With Approximation Functions
 
             peri = cv.arcLength(cnt, True)
-            approx = cv.approxPolyDP(cnt, 0.01 * peri, True)
-            # x,y,w,h = cv.boundingRect(approx)
+            approx = cv.approxPolyDP(cnt, 0.02 * peri, True)
+            bbox = cv.boundingRect(approx)
+
             rect = cv.minAreaRect(cnt)
             box = cv.boxPoints(rect)
             box = np.int0(box)
+
             center = (box[0]+box[2])//2
-            print(box[0][0] + box[1][0] + 20)
-            if len(approx) == 4:
+            if len(approx) >= 4 and len(approx)<=6 :
                 cv.drawContours(imgContour, [box], -1, (255, 0, 255), 7)
                 cv.circle(imgContour,(center[0],center[1]), 0, (0,255,0), 15)
                 cv.putText(imgContour,'Points: ' + str(len(approx)),(center[0] + 20,center[1] + 20), cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
                 cv.putText(imgContour,'Area: ' + str(int(area)), (center[0] + 20,center[1] + 45),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
-
+                cv.putText(imgContour,'X_Axis: '+str(center[0]),((center[0] + 20,center[1] + 70)),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
+                cv.putText(imgContour,'Y_Axis: ' + str(center[1]), ((center[0] + 20, center[1] + 95)),cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
 
 
     # Whenever Trackbar Moves This Function Will Be Executed
@@ -89,7 +93,8 @@ def stackImages(scale,imgArray):
         ver = hor
     return ver
 
-
+########################################################################################################################
+# Codes
 # Trackbar Interface
 cv.namedWindow('Parameters')
 cv.resizeWindow('Parameters',640,80)
@@ -126,14 +131,18 @@ while True:
     canny = cv.Canny(grey,threshold1,threshold2)
 
     # Dilation Function This Function Makes Bright Pixels Brighter And Program Can See Edges More Clearly With This
-    kernel = np.ones((5,5))
-    imgDil = cv.dilate(canny,kernel,iterations = 1)
+    kernel = np.ones((3,3))
+    imgDil = cv.dilate(canny,kernel,iterations = 3)
+
+    # Erode Function This Function Makes Photo Little Smaller
+
+    imgDil = cv.erode(imgDil,kernel,iterations=2)
 
     # Get Contours
     getContours(imgDil,imgContour)
 
     # Stack Images
-    imgStack = stackImages(0.8,([frame,canny,grey],[imgDil,imgContour,imgContour]))
+    imgStack = stackImages(0.8,([frame,canny,grey],[imgDil,imgContour,frame]))
     cv.imshow('Video', imgStack)
 
     # Wait until you press d
@@ -141,6 +150,8 @@ while True:
     if cv.waitKey(20) & 0xFF == ord('d'):
         break
 
+
+########################################################################################################################
 # Below works for quit code
 
 capture.release()
