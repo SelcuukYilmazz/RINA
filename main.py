@@ -15,7 +15,7 @@ def getContours(img,imgContour):
             # Reduce Mistakes With Approximation Functions
 
             peri = cv.arcLength(cnt, True)
-            approx = cv.approxPolyDP(cnt, 0.02 * peri, True)
+            approx = cv.approxPolyDP(cnt, 0.025 * peri, True)
             bbox = cv.boundingRect(approx)
 
             rect = cv.minAreaRect(cnt)
@@ -23,7 +23,7 @@ def getContours(img,imgContour):
             box = np.int0(box)
 
             center = (box[0]+box[2])//2
-            if len(approx) >= 4 and len(approx)<=6 :
+            if len(approx) == 4:
                 cv.drawContours(imgContour, [box], -1, (255, 0, 255), 7)
                 cv.circle(imgContour,(center[0],center[1]), 0, (0,255,0), 15)
                 cv.putText(imgContour,'Points: ' + str(len(approx)),(center[0] + 20,center[1] + 20), cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
@@ -92,17 +92,22 @@ def stackImages(scale,imgArray):
         hor =np.hstack(imgArray)
         ver = hor
     return ver
-
+########################################################################################################################
 ########################################################################################################################
 # Codes
 # Trackbar Interface
 cv.namedWindow('Parameters')
-cv.resizeWindow('Parameters',640,80)
+cv.resizeWindow('Parameters',640,640)
 cv.createTrackbar('Threshold1','Parameters',75,255,empty)
 cv.createTrackbar('Threshold2','Parameters',64,255,empty)
+cv.createTrackbar('HUE Min','Parameters',0,179,empty)
+cv.createTrackbar('HUE Max','Parameters',100,179,empty)
+cv.createTrackbar('SAT Min','Parameters',73,255,empty)
+cv.createTrackbar('SAT Max','Parameters',173,255,empty)
+cv.createTrackbar('VALUE Min','Parameters',0,255,empty)
+cv.createTrackbar('VALUE Max','Parameters',255,255,empty)
 
 # Capturing Video From Your Camera
-
 capture = cv.VideoCapture(0)
 
 while True:
@@ -110,10 +115,29 @@ while True:
     # frame Is Captured Video
     isTrue,frame = capture.read()
 
+    Intensity_Matrix = np.ones(frame.shape,dtype='uint8')*60
+    frame = cv.add(frame,Intensity_Matrix)
 
     # Input Taken From Trackbar to Thresholds
     threshold1 = cv.getTrackbarPos('Threshold1','Parameters')
     threshold2 = cv.getTrackbarPos('Threshold2','Parameters')
+
+    # Color Detection Trackbars
+    hueMin = cv.getTrackbarPos('HUE Min','Parameters')
+    hueMax = cv.getTrackbarPos('HUE Max','Parameters')
+    satMin = cv.getTrackbarPos('SAT Min','Parameters')
+    satMax = cv.getTrackbarPos('SAT Max','Parameters')
+    valMin = cv.getTrackbarPos('VALUE Min','Parameters')
+    valMax = cv.getTrackbarPos('VALUE Max','Parameters')
+
+
+    # Original Image to HSV
+    imgHsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
+    # Color Detection Numpy Matrix
+    lower = np.array([hueMin,satMin,valMin])
+    upper = np.array([hueMax,satMax,valMax])
+    mask = cv.inRange(imgHsv,lower,upper)
+    result = cv.bitwise_and(frame,frame,mask=mask)
 
     # Detected Image (Working Image)
     imgContour = frame.copy()
@@ -132,7 +156,7 @@ while True:
 
     # Dilation Function This Function Makes Bright Pixels Brighter And Program Can See Edges More Clearly With This
     kernel = np.ones((3,3))
-    imgDil = cv.dilate(canny,kernel,iterations = 3)
+    imgDil = cv.dilate(canny,kernel,iterations = 4)
 
     # Erode Function This Function Makes Photo Little Smaller
 
@@ -142,8 +166,8 @@ while True:
     getContours(imgDil,imgContour)
 
     # Stack Images
-    imgStack = stackImages(0.8,([frame,canny,grey],[imgDil,imgContour,frame]))
-    cv.imshow('Video', imgStack)
+    imgStack = stackImages(0.8,([frame,canny,mask],[imgDil,imgContour,result]))
+    cv.imshow('All',imgStack)
 
     # Wait until you press d
 
