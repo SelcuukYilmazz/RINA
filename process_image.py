@@ -1,34 +1,42 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2 as cv
+import time
 
 
 #######################################################################################################################
 #  Functions
     # Getting Contours Of Image
-def getContours(img,imgContour):
+def getContours(img,imgContour,relative_area,box,corners,time):
+    print(relative_area)
     contours,hierarchy = cv.findContours(img,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         area = cv.contourArea(cnt)
-        if area > 300:
-
+        if area >= relative_area:
             # Reduce Mistakes With Approximation Functions
-
+            time = 0
             peri = cv.arcLength(cnt, True)
             approx = cv.approxPolyDP(cnt, 0.025 * peri, True)
-
-            rect = cv.minAreaRect(cnt)
-            box = cv.boxPoints(rect)
-            box = np.int0(box)
-
-            center = (box[0]+box[2])//2
             if len(approx) == 4:
-                cv.drawContours(imgContour, [box], -1, (255, 0, 255), 7)
-                cv.circle(imgContour,(center[0],center[1]), 0, (0,255,0), 15)
-                cv.putText(imgContour,'Points: ' + str(len(approx)),(center[0] + 20,center[1] + 20), cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
-                cv.putText(imgContour,'Area: ' + str(int(area)), (center[0] + 20,center[1] + 45),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
-                cv.putText(imgContour,'X_Axis: '+str(center[0]),((center[0] + 20,center[1] + 70)),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
-                cv.putText(imgContour,'Y_Axis: ' + str(center[1]), ((center[0] + 20, center[1] + 95)),cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
+                relative_area = area
+                rect = cv.minAreaRect(cnt)
+                box = cv.boxPoints(rect)
+                box = np.int0(box)
+                corners = len(approx)
+
+    if time == 20:
+        box = []
+        relative_area = 186
+
+    if len(box) != 0:
+        center = (box[0] + box[2]) // 2
+        cv.drawContours(imgContour, [box], -1, (255, 0, 255), 7)
+        cv.circle(imgContour,(center[0],center[1]), 0, (0,255,0), 15)
+        cv.putText(imgContour,'Points: ' + str(corners),(center[0] + 20,center[1] + 20), cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
+        cv.putText(imgContour,'Area: ' + str(int(relative_area)), (center[0] + 20,center[1] + 45),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
+        cv.putText(imgContour,'X_Axis: '+str(center[0]),((center[0] + 20,center[1] + 70)),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
+        cv.putText(imgContour,'Y_Axis: ' + str(center[1]), ((center[0] + 20, center[1] + 95)),cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
+    return relative_area,box,corners,time
 
 
     # Whenever Trackbar Moves This Function Will Be Executed
@@ -91,60 +99,44 @@ def stackImages(scale,imgArray):
         hor =np.hstack(imgArray)
         ver = hor
     return ver
-########################################################################################################################
-########################################################################################################################
-# Codes
-# Trackbar Interface
-cv.namedWindow('Parameters')
-cv.resizeWindow('Parameters',640,640)
-cv.createTrackbar('Threshold1','Parameters',75,255,empty)
-cv.createTrackbar('Threshold2','Parameters',64,255,empty)
-cv.createTrackbar('HUE Min','Parameters',0,179,empty)
-cv.createTrackbar('HUE Max','Parameters',100,179,empty)
-cv.createTrackbar('SAT Min','Parameters',73,255,empty)
-cv.createTrackbar('SAT Max','Parameters',173,255,empty)
-cv.createTrackbar('VALUE Min','Parameters',0,255,empty)
-cv.createTrackbar('VALUE Max','Parameters',255,255,empty)
 
-# Capturing Video From Your Camera
-capture = cv.VideoCapture(0)
 
-while True:
+# Image Process Main Function
+def image_process(capture, relative_area,box,corners,time):
     # If Camera Captures Video Than isTrue is True
     # frame Is Captured Video
-    isTrue,frame = capture.read()
+    isTrue, frame = capture.read()
 
     # Brighten Image
-    Intensity_Matrix = np.ones(frame.shape,dtype='uint8')*60
-    frame = cv.add(frame,Intensity_Matrix)
+    Intensity_Matrix = np.ones(frame.shape, dtype='uint8') * 60
+    frame = cv.add(frame, Intensity_Matrix)
 
     # Input Taken From Trackbar to Thresholds
-    threshold1 = cv.getTrackbarPos('Threshold1','Parameters')
-    threshold2 = cv.getTrackbarPos('Threshold2','Parameters')
+    threshold1 = cv.getTrackbarPos('Threshold1', 'Parameters')
+    threshold2 = cv.getTrackbarPos('Threshold2', 'Parameters')
 
     # Color Detection Trackbars
-    hueMin = cv.getTrackbarPos('HUE Min','Parameters')
-    hueMax = cv.getTrackbarPos('HUE Max','Parameters')
-    satMin = cv.getTrackbarPos('SAT Min','Parameters')
-    satMax = cv.getTrackbarPos('SAT Max','Parameters')
-    valMin = cv.getTrackbarPos('VALUE Min','Parameters')
-    valMax = cv.getTrackbarPos('VALUE Max','Parameters')
-
+    hueMin = cv.getTrackbarPos('HUE Min', 'Parameters')
+    hueMax = cv.getTrackbarPos('HUE Max', 'Parameters')
+    satMin = cv.getTrackbarPos('SAT Min', 'Parameters')
+    satMax = cv.getTrackbarPos('SAT Max', 'Parameters')
+    valMin = cv.getTrackbarPos('VALUE Min', 'Parameters')
+    valMax = cv.getTrackbarPos('VALUE Max', 'Parameters')
 
     # Original Image to HSV
-    imgHsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
+    imgHsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     # Color Detection Numpy Matrix
-    lower = np.array([hueMin,satMin,valMin])
-    upper = np.array([hueMax,satMax,valMax])
-    mask = cv.inRange(imgHsv,lower,upper)
-    result = cv.bitwise_and(frame,frame,mask=mask)
+    lower = np.array([hueMin, satMin, valMin])
+    upper = np.array([hueMax, satMax, valMax])
+    mask = cv.inRange(imgHsv, lower, upper)
+    result = cv.bitwise_and(frame, frame, mask=mask)
 
     # Detected Image (Working Image)
     imgContour = frame.copy()
 
     # Blur
 
-    blur = cv.GaussianBlur(frame,(7,7),1)
+    blur = cv.GaussianBlur(frame, (7, 7), 1)
 
     # Grey Filter
 
@@ -152,35 +144,60 @@ while True:
 
     # Canny Edge Detector
 
-    canny = cv.Canny(grey,threshold1,threshold2)
+    canny = cv.Canny(grey, threshold1, threshold2)
 
     # Dilation Function This Function Makes Bright Pixels Brighter And Program Can See Edges More Clearly With This
-    kernel = np.ones((3,3))
-    imgDil = cv.dilate(canny,kernel,iterations = 4)
+    kernel = np.ones((3, 3))
+    imgDil = cv.dilate(canny, kernel, iterations=4)
 
     # Erode Function This Function Makes Photo Little Smaller
 
-    imgDil = cv.erode(imgDil,kernel,iterations=2)
+    imgDil = cv.erode(imgDil, kernel, iterations=2)
 
     # Get Contours
-    getContours(imgDil,imgContour)
+    relative_area,box,corners,time = getContours(imgDil, imgContour,relative_area,box,corners,time)
 
     # Stack Images
-    imgStack = stackImages(0.8,([frame,canny,mask],[imgDil,imgContour,result]))
-    cv.imshow('All',imgStack)
+    imgStack = stackImages(0.8, ([frame, canny, mask], [imgDil, imgContour, result]))
+    cv.imshow('All', imgStack)
+    return relative_area,box,corners,time
 
+
+
+
+########################################################################################################################
+########################################################################################################################
+############################################# Main Code ######################################
+# Variables
+relative_area = 186
+box = []
+corners = 0
+time = 0
+# Capturing Video From Your Camera
+capture = cv.VideoCapture(0)
+
+# Trackbar Interface
+cv.namedWindow('Parameters')
+cv.resizeWindow('Parameters', 640, 640)
+cv.createTrackbar('Threshold1', 'Parameters', 82, 255, empty)
+cv.createTrackbar('Threshold2', 'Parameters', 67, 255, empty)
+cv.createTrackbar('HUE Min', 'Parameters', 0, 179, empty)
+cv.createTrackbar('HUE Max', 'Parameters', 100, 179, empty)
+cv.createTrackbar('SAT Min', 'Parameters', 73, 255, empty)
+cv.createTrackbar('SAT Max', 'Parameters', 173, 255, empty)
+cv.createTrackbar('VALUE Min', 'Parameters', 0, 255, empty)
+cv.createTrackbar('VALUE Max', 'Parameters', 255, 255, empty)
+while True:
+    relative_area,box,corners,time = image_process(capture,relative_area,box,corners,time)
+    time += 1
     # Wait until you press d
-
     if cv.waitKey(20) & 0xFF == ord('d'):
         break
-
 
 ########################################################################################################################
 # Below works for quit code
 
 capture.release()
 cv.destroyAllWindows()
-
-
 
 
