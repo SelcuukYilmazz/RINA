@@ -21,7 +21,7 @@ def getContours(img,imgContour,door):
             if len(approx) == 4:
 
                 # Reset time everytime code gets in here
-                door.time = 0
+                door.Start_time()
                 door.area = area
                 rect = cv.minAreaRect(cnt)
                 door.box = cv.boxPoints(rect)
@@ -29,8 +29,10 @@ def getContours(img,imgContour,door):
                 door.corners = len(approx)
                 door.lock = True
 
+    door.Scan_time()
+    print(door.scan_time)
     # Reset every 60 repeats
-    if door.time == 60:
+    if door.scan_time >= 5:
         door.box = []
         door.area = 186
         door.center = []
@@ -182,9 +184,13 @@ door = Door()
 # Capturing Video From Your Camera
 capture = cv.VideoCapture(0)
 
+# Timer Start
+door.Start_time()
+
 while True:
     image_process(capture,door)
-    door.time += 1
+
+
     # Wait until you press d
     if cv.waitKey(20) & 0xFF == ord('d'):
         break
