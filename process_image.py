@@ -1,7 +1,7 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import cv2 as cv
-from Door import Door
+import matplotlib.pyplot as plt
+from Objects import Rectangle
 
 
 #######################################################################################################################
@@ -105,7 +105,8 @@ def stackImages(scale,imgArray):
 
 
 # Image Process Main Function
-def image_process(capture,door):
+def Rectangle_process(capture,door):
+
     # If Camera Captures Video Than isTrue is True
     # frame Is Captured Video
     isTrue, frame = capture.read()
@@ -162,6 +163,26 @@ def image_process(capture,door):
     cv.imshow('All', imgStack)
     return
 
+def Circle_Process(capture):
+    isTrue,frame = capture.read()
+    output = frame.copy()
+    # Brighten Image
+    Intensity_Matrix = np.ones(frame.shape, dtype='uint8') * 60
+    frame = cv.add(frame, Intensity_Matrix)
+    gray = cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
+    gray = cv.GaussianBlur(gray,(21,21),cv.BORDER_DEFAULT)
+
+
+    all_circs = cv.HoughCircles(gray,cv.HOUGH_GRADIENT,0.9,120,param1=60,param2=30,minRadius=60,maxRadius=500)
+    if type(all_circs) != type(None):
+        all_circs_rounded = np.uint16(np.around(all_circs))
+        for i in all_circs_rounded[0,:]:
+            cv.circle(output,(i[0],i[1]),i[2],(50,200,200),5)
+            cv.circle(output,(i[0],i[1]),2,(255,0,0),3)
+
+    cv.imshow('Circles',output)
+
+
 
 # Trackbar Interface
 cv.namedWindow('Parameters')
@@ -177,9 +198,10 @@ cv.createTrackbar('VALUE Max', 'Parameters', 255, 255, empty)
 
 ########################################################################################################################
 ########################################################################################################################
-############################################# Main Code ######################################
+################################################ Main Code #############################################################
+
 # Variables
-door = Door()
+door = Rectangle()
 
 # Capturing Video From Your Camera
 capture = cv.VideoCapture(0)
@@ -188,7 +210,8 @@ capture = cv.VideoCapture(0)
 door.Start_time()
 
 while True:
-    image_process(capture,door)
+    # Rectangle_process(capture,door)
+    Circle_Process(capture)
 
 
     # Wait until you press d
