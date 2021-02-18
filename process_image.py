@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+import math
 import matplotlib.pyplot as plt
 from Objects import Rectangle
 
@@ -13,40 +14,74 @@ def getContours(img,imgContour,door):
         area = cv.contourArea(cnt)
 
         # If area getting bigger then lock to that area and release this but if it is a rectangle
-        if area >= door.area:
+        if area >= door.area[2]:
 
             # Reduce Mistakes With Approximation Functions
             peri = cv.arcLength(cnt, True)
             approx = cv.approxPolyDP(cnt, 0.025 * peri, True)
             if len(approx) == 4:
-
                 # Reset time everytime code gets in here
                 door.Start_time()
-                door.area = area
-                rect = cv.minAreaRect(cnt)
-                door.box = cv.boxPoints(rect)
-                door.box = np.int0(door.box)
-                door.corners = len(approx)
-                door.lock = True
+
+                for i in range(len(door.area)):
+                    if area > door.area[i]:
+                        door.area[i] = area
+                        rect = cv.minAreaRect(cnt)
+                        temp_box = cv.boxPoints(rect)
+                        temp_box = np.int0(temp_box)
+
+                        if i == 0:
+                            door.environment_box = temp_box
+                            door.corners = len(approx)
+                            door.lock = True
+                        elif len(door.environment_center) == 2:
+                            if i == 1 and door.area[0]-area >= door.area[0]//20 and door.environment_center[1] < ((temp_box[0] + temp_box[2]) // 2)[1]:
+                                door.lower_box = temp_box
+                                door.corners = len(approx)
+
+                            elif i == 2 and door.area[0] - area > door.area[0]//10 and door.environment_center[1] > ((temp_box[0] + temp_box[2]) // 2)[1]:
+                                door.higher_box = temp_box
+                                door.corners = len(approx)
+
+
+
+                        break
+                temp = door.environment_box.view(np.ndarray)
+                temp = temp[np.lexsort((temp[:, 1],))]
+                door.upper_corners = temp[:2]
+                if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 5 :
+                    print('Yamuk lan bu!')
+
 
     door.Scan_time()
-    print(door.scan_time)
     # Reset every 60 repeats
-    if door.scan_time >= 5:
-        door.box = []
-        door.area = 186
-        door.center = []
+    if door.scan_time >= 2:
+        door.environment_box = []
+        door.higher_box = []
+        door.lower_box = []
+        door.area = [186,185,184]
+        door.environment_center = []
+        door.upper_corners = []
         door.lock = False
 
     # If door locked on something then draw it
     if door.lock:
-        door.center = (door.box[0] + door.box[2]) // 2
-        cv.drawContours(imgContour, [door.box], -1, (255, 0, 255), 7)
-        cv.circle(imgContour,(door.center[0],door.center[1]), 0, (0,255,0), 15)
-        cv.putText(imgContour,'Points: ' + str(door.corners),(door.center[0] + 20,door.center[1] + 20), cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
-        cv.putText(imgContour,'Area: ' + str(int(door.area)), (door.center[0] + 20,door.center[1] + 45),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
-        cv.putText(imgContour,'X_Axis: '+str(door.center[0]),((door.center[0] + 20,door.center[1] + 70)),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
-        cv.putText(imgContour,'Y_Axis: ' + str(door.center[1]), ((door.center[0] + 20, door.center[1] + 95)),cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
+        door.environment_center = (door.environment_box[0] + door.environment_box[2]) // 2
+        cv.drawContours(imgContour, [door.environment_box], -1, (255, 0, 255), 7)
+        if len(door.higher_box) > 0:
+            cv.drawContours(imgContour, [door.higher_box], -1, (255, 0, 255), 7)
+            cv.putText(imgContour,'Yüksek Puan',(door.higher_box[1][0],door.higher_box[1][1]),cv.FONT_HERSHEY_DUPLEX,0.7,(0,0,255),2)
+        if len(door.lower_box) > 0:
+            cv.drawContours(imgContour, [door.lower_box], -1, (255, 0, 255), 7)
+            cv.putText(imgContour, 'Düşük Puan', (door.lower_box[1][0],door.lower_box[1][1]), cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 0, 255), 2)
+        cv.circle(imgContour,(door.upper_corners[0][0],door.upper_corners[0][1]),0,(0,0,255),5)
+        cv.circle(imgContour, (door.upper_corners[1][0],door.upper_corners[1][1]), 0, (0, 0, 255), 5)
+        cv.circle(imgContour,(door.environment_center[0],door.environment_center[1]), 0, (0,255,0), 15)
+        cv.putText(imgContour,'Points: ' + str(door.corners),(door.environment_center[0] + 20,door.environment_center[1] + 20), cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
+        cv.putText(imgContour,'Area: ', (door.environment_center[0] + 20,door.environment_center[1] + 45),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
+        cv.putText(imgContour,'X_Axis: '+str(door.environment_center[0]),((door.environment_center[0] + 20,door.environment_center[1] + 70)),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
+        cv.putText(imgContour,'Y_Axis: ' + str(door.environment_center[1]), ((door.environment_center[0] + 20, door.environment_center[1] + 95)),cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
+
     return
 
 
@@ -103,7 +138,6 @@ def stackImages(scale,imgArray):
         ver = hor
     return ver
 
-
 # Image Process Main Function
 def Rectangle_process(capture,door):
 
@@ -150,7 +184,7 @@ def Rectangle_process(capture,door):
 
     # Dilation Function This Function Makes Bright Pixels Brighter And Program Can See Edges More Clearly With This
     kernel = np.ones((3, 3))
-    imgDil = cv.dilate(canny, kernel, iterations=4)
+    imgDil = cv.dilate(canny, kernel, iterations=3)
 
     # Erode Function This Function Makes Photo Little Smaller
     imgDil = cv.erode(imgDil, kernel, iterations=2)
@@ -164,21 +198,38 @@ def Rectangle_process(capture,door):
     return
 
 def Circle_Process(capture):
+
+    # If Camera Captures Video Than isTrue is True
+    # frame Is Captured Video
     isTrue,frame = capture.read()
+
+    # Copied Original Image to output variable
     output = frame.copy()
+
     # Brighten Image
     Intensity_Matrix = np.ones(frame.shape, dtype='uint8') * 60
     frame = cv.add(frame, Intensity_Matrix)
+
+    # Changing Color of Image to Gray So We Can Detect Edges Easily
     gray = cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
+
+    # Doing Blur on Image So We Can Detect Edges Easily
     gray = cv.GaussianBlur(gray,(21,21),cv.BORDER_DEFAULT)
 
-
+    # Detecting Circles Are In all_circs
     all_circs = cv.HoughCircles(gray,cv.HOUGH_GRADIENT,0.9,120,param1=60,param2=30,minRadius=60,maxRadius=500)
+
+    # If Any Circle Detected Then Go
     if type(all_circs) != type(None):
+
+        # Make Circle Around Circles
         all_circs_rounded = np.uint16(np.around(all_circs))
         for i in all_circs_rounded[0,:]:
             cv.circle(output,(i[0],i[1]),i[2],(50,200,200),5)
             cv.circle(output,(i[0],i[1]),2,(255,0,0),3)
+            cv.putText(output,'Center x: '+str(i[0]),(i[0]+20,i[1]),cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
+            cv.putText(output, 'Center y: ' + str(i[1]), (i[0] + 20, i[1]-25), cv.FONT_HERSHEY_DUPLEX, .7, (0, 255, 0), 2)
+            cv.putText(output, 'Area : ' + str(int(math.pi*(i[2]**2))), (i[0] + 20, i[1]-50), cv.FONT_HERSHEY_DUPLEX, .7, (0, 255, 0), 2)
 
     cv.imshow('Circles',output)
 
@@ -210,8 +261,8 @@ capture = cv.VideoCapture(0)
 door.Start_time()
 
 while True:
-    # Rectangle_process(capture,door)
-    Circle_Process(capture)
+    Rectangle_process(capture,door)
+    # Circle_Process(capture)
 
 
     # Wait until you press d

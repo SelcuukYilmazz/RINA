@@ -3,11 +3,16 @@ import time
 class Rectangle:
     lock = False
     corners = 0
-    area = 0
+    area = [186,185,184]
     time = 0
-    box = []
-    center = []
+    environment_box = []
+    higher_box = []
+    lower_box = []
+    environment_center = []
+    higher_center = []
+    lower_center = []
     start_time,scan_time = 0,0
+    upper_corners = []
 
 
     def Start_time(self):
