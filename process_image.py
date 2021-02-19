@@ -172,13 +172,13 @@ def Rectangle_process(capture,door):
     imgContour = frame.copy()
 
     # # Blur
-    blur = cv.GaussianBlur(frame, (7, 7),1)
+    blur = cv.GaussianBlur(frame, (5, 5),1)
 
     # Grey Filter
     grey = cv.cvtColor(blur, cv.COLOR_BGR2GRAY)
 
     grey = cv.bilateralFilter(grey, 1, 10, 120)
-
+    grey = cv.boxFilter(grey,-1,(5,5))
     # Canny Edge Detector
     canny = cv.Canny(grey, threshold1, threshold2)
     #
@@ -270,5 +270,3 @@ while True:
 
 capture.release()
 cv.destroyAllWindows()
-
-
