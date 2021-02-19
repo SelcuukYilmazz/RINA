@@ -36,5 +36,6 @@ while True:
 
 
     # Set some yaw
-    set_rc_channel_pwm(5,1900)
-    print(master.messages['LOCAL_POSITION_NED'].x)
+    # set_rc_channel_pwm(5,1900)
+    # print(master.messages['LOCAL_POSITION_NED'].x)
+    print(master.messages<['POWER_STATUS'].Vcc)

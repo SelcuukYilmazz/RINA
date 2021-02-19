@@ -5,7 +5,7 @@ class Rectangle:
     corners = 0
     area = [186,185,184]
     time = 0
-    environment_box = []
+    environment_box = [0]
     higher_box = []
     lower_box = []
     environment_center = []

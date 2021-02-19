@@ -35,28 +35,29 @@ def getContours(img,imgContour,door):
                             door.corners = len(approx)
                             door.lock = True
                         elif len(door.environment_center) == 2:
-                            if i == 1 and door.area[0]-area >= door.area[0]//20 and door.environment_center[1] < ((temp_box[0] + temp_box[2]) // 2)[1]:
+                            if i == 1 and door.area[0]-area >= door.area[0]//80 and door.environment_center[1] < ((temp_box[0] + temp_box[2]) // 2)[1]:
                                 door.lower_box = temp_box
                                 door.corners = len(approx)
 
-                            elif i == 2 and door.area[0] - area > door.area[0]//10 and door.environment_center[1] > ((temp_box[0] + temp_box[2]) // 2)[1]:
+                            elif i == 2 and door.area[0] - area > door.area[0]//50 and door.environment_center[1] > ((temp_box[0] + temp_box[2]) // 2)[1]:
                                 door.higher_box = temp_box
                                 door.corners = len(approx)
 
 
 
                         break
-                temp = door.environment_box.view(np.ndarray)
-                temp = temp[np.lexsort((temp[:, 1],))]
-                door.upper_corners = temp[:2]
-                if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 5 :
-                    print('Yamuk lan bu!')
+                if isinstance(door.environment_box[0],np.ndarray):
+                    temp = door.environment_box.view(np.ndarray)
+                    temp = temp[np.lexsort((temp[:, 1],))]
+                    door.upper_corners = temp[:2]
+                    if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 5 :
+                        print('Yamuk lan bu!')
 
 
     door.Scan_time()
     # Reset every 60 repeats
-    if door.scan_time >= 2:
-        door.environment_box = []
+    if door.scan_time >= 1.5:
+        door.environment_box = [0]
         door.higher_box = []
         door.lower_box = []
         door.area = [186,185,184]
@@ -134,7 +135,7 @@ def stackImages(scale,imgArray):
                 imgArray[x] = cv.resize(imgArray[x],(imgArray[0].shape[1],imgArray[0].shape[0]),None,scale,scale)
             if len(imgArray[x].shape) == 2:
                 imgArray[x] = cv.cvtColor(imgArray[x],cv.COLOR_GRAY2BGR)
-        hor =np.hstack(imgArray)
+        hor = np.hstack(imgArray)
         ver = hor
     return ver
 
@@ -145,9 +146,6 @@ def Rectangle_process(capture,door):
     # frame Is Captured Video
     isTrue, frame = capture.read()
 
-    # Brighten Image
-    Intensity_Matrix = np.ones(frame.shape, dtype='uint8') * 60
-    frame = cv.add(frame, Intensity_Matrix)
 
     # Input Taken From Trackbar to Thresholds
     threshold1 = cv.getTrackbarPos('Threshold1', 'Parameters')
@@ -173,27 +171,29 @@ def Rectangle_process(capture,door):
     # Detected Image (Working Image)
     imgContour = frame.copy()
 
-    # Blur
-    blur = cv.GaussianBlur(frame, (7, 7), 1)
+    # # Blur
+    blur = cv.GaussianBlur(frame, (7, 7),1)
 
     # Grey Filter
     grey = cv.cvtColor(blur, cv.COLOR_BGR2GRAY)
 
+    grey = cv.bilateralFilter(grey, 1, 10, 120)
+
     # Canny Edge Detector
     canny = cv.Canny(grey, threshold1, threshold2)
-
-    # Dilation Function This Function Makes Bright Pixels Brighter And Program Can See Edges More Clearly With This
-    kernel = np.ones((3, 3))
-    imgDil = cv.dilate(canny, kernel, iterations=3)
-
-    # Erode Function This Function Makes Photo Little Smaller
-    imgDil = cv.erode(imgDil, kernel, iterations=2)
+    #
+    # # Dilation Function This Function Makes Bright Pixels Brighter And Program Can See Edges More Clearly With This
+    # kernel = np.ones((3, 3))
+    # imgDil = cv.dilate(canny, kernel, iterations=1)
+    #
+    # # Erode Function This Function Makes Photo Little Smaller
+    # imgDil = cv.erode(imgDil, kernel, iterations=1)
 
     # Get Contours
-    getContours(imgDil, imgContour,door)
+    getContours(canny, imgContour,door)
 
     # Stack Images
-    imgStack = stackImages(0.8, ([frame, canny, mask], [imgDil, imgContour, result]))
+    imgStack = stackImages(0.8, ([frame, canny, mask], [canny, imgContour, grey]))
     cv.imshow('All', imgStack)
     return
 
@@ -205,10 +205,6 @@ def Circle_Process(capture):
 
     # Copied Original Image to output variable
     output = frame.copy()
-
-    # Brighten Image
-    Intensity_Matrix = np.ones(frame.shape, dtype='uint8') * 60
-    frame = cv.add(frame, Intensity_Matrix)
 
     # Changing Color of Image to Gray So We Can Detect Edges Easily
     gray = cv.cvtColor(frame,cv.COLOR_BGR2GRAY)

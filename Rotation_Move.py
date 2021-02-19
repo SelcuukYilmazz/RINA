@@ -35,30 +35,47 @@ def set_rc_channel_pwm(channel_id, pwm=1500):
         *rc_channel_values)                  # RC channel list, in microseconds.
 
 
-# Set some roll
-set_rc_channel_pwm(2, 1600)
 
-#Stop ROV Where It is
-set_rc_channel_pwm(3,1540)
+while True:
+    # # Set some roll
+    # set_rc_channel_pwm(2, 1900)
+    #
+    # #Stop ROV Where It is
+    # set_rc_channel_pwm(3,1540)
+    #
+    # # Go to right
+    # set_rc_channel_pwm(6,1900)
+    #
+    # # Set some yaw to right
+    # set_rc_channel_pwm(4, 1900)
+    #
+    # # Take ROV To Air
+    # set_rc_channel_pwm(3,1600)
+    #
+    # # Take ROV To Depths
+    # set_rc_channel_pwm(3,1400)
+    #
+    # # The camera pwm value is the servo speed
+    # # and not the servo position
+    # # Set camera tilt to 45º with full speed
+    # set_rc_channel_pwm(8, 1900)
+    #
+    # # Set channel 12 to 1500us
+    # # This can be used to control a device connected to a servo output by setting the
+    # # SERVO[N]_Function to RCIN12 (Where N is one of the PWM outputs)
+    # set_rc_channel_pwm(12, 1500)
 
-# Set yaw to right
-set_rc_channel_pwm(6,1400)
+    # Roll Sides
+    set_rc_channel_pwm(2,1900)
 
-# Set some yaw to left
-set_rc_channel_pwm(4, 1400)
+    # Hover Vehicle
+    set_rc_channel_pwm(3,1900)
 
-# Take ROV To Air
-set_rc_channel_pwm(3,1600)
+    # Rotate Right
+    set_rc_channel_pwm(4,1900)
 
-# Take ROV To Depths
-set_rc_channel_pwm(3,1400)
+    # Go Forward
+    set_rc_channel_pwm(5,1900)
 
-# The camera pwm value is the servo speed
-# and not the servo position
-# Set camera tilt to 45º with full speed
-set_rc_channel_pwm(8, 1900)
-
-# Set channel 12 to 1500us
-# This can be used to control a device connected to a servo output by setting the
-# SERVO[N]_Function to RCIN12 (Where N is one of the PWM outputs)
-set_rc_channel_pwm(12, 1500)
+    # Go Right
+    set_rc_channel_pwm(6,1900)
