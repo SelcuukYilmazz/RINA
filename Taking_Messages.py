@@ -17,9 +17,10 @@ master = mavutil.mavlink_connection('udp:192.168.1.3:10020')
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 
-# Request all parameters
-master.mav.param_request_list_send(
-    master.target_system, master.target_component
+master.mav.param_request_read_send(
+    master.target_system, master.target_component,
+    b'SURFACE_DEPTH',
+    -1
 )
 while True:
     time.sleep(0.01)

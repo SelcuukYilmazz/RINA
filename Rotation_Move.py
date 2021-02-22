@@ -65,14 +65,14 @@ while True:
     # # SERVO[N]_Function to RCIN12 (Where N is one of the PWM outputs)
     # set_rc_channel_pwm(12, 1500)
 
-    # Roll Sides
-    set_rc_channel_pwm(2,1900)
+    # # Roll Sides
+    # set_rc_channel_pwm(2,1300)
 
-    # Hover Vehicle
-    set_rc_channel_pwm(3,1900)
-
+    # # Hover Vehicle
+    # set_rc_channel_pwm(3,1900)
+    #
     # Rotate Right
-    set_rc_channel_pwm(4,1900)
+    # set_rc_channel_pwm(4,1200)
 
     # Go Forward
     set_rc_channel_pwm(5,1900)

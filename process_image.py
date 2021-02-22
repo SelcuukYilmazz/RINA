@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 import math
+import Calibration
 import matplotlib.pyplot as plt
 from Objects import Rectangle
 
@@ -22,7 +23,7 @@ def getContours(img,imgContour,door):
             if len(approx) == 4:
                 # Reset time everytime code gets in here
                 door.Start_time()
-
+                # Decides which square will be change (lower,higher or enviromental)
                 for i in range(len(door.area)):
                     if area > door.area[i]:
                         door.area[i] = area
@@ -35,44 +36,54 @@ def getContours(img,imgContour,door):
                             door.corners = len(approx)
                             door.lock = True
                         elif len(door.environment_center) == 2:
-                            if i == 1 and door.area[0]-area >= door.area[0]//80 and door.environment_center[1] < ((temp_box[0] + temp_box[2]) // 2)[1]:
+                            if i == 1 and door.area[0]-area >= door.area[0]//30 and door.environment_center[1] < ((temp_box[0] + temp_box[2]) // 2)[1]:
                                 door.lower_box = temp_box
                                 door.corners = len(approx)
 
-                            elif i == 2 and door.area[0] - area > door.area[0]//50 and door.environment_center[1] > ((temp_box[0] + temp_box[2]) // 2)[1]:
+                            elif i == 2 and door.area[0] - area > door.area[0]//20 and door.environment_center[1] > ((temp_box[0] + temp_box[2]) // 2)[1]:
                                 door.higher_box = temp_box
                                 door.corners = len(approx)
 
-
-
                         break
+
+                # Controls for decent rectangle
                 if isinstance(door.environment_box[0],np.ndarray):
                     temp = door.environment_box.view(np.ndarray)
                     temp = temp[np.lexsort((temp[:, 1],))]
                     door.upper_corners = temp[:2]
-                    if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 5 :
+                    if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 30 :
                         print('Yamuk lan bu!')
 
 
     door.Scan_time()
-    # Reset every 60 repeats
+    # Reset every 1.5 seconds
     if door.scan_time >= 1.5:
         door.environment_box = [0]
         door.higher_box = []
         door.lower_box = []
         door.area = [186,185,184]
         door.environment_center = []
+        door.higher_center = []
+        door.lower_center = []
         door.upper_corners = []
         door.lock = False
 
     # If door locked on something then draw it
     if door.lock:
+
+        # Change environment rectangle's center and draw it
         door.environment_center = (door.environment_box[0] + door.environment_box[2]) // 2
         cv.drawContours(imgContour, [door.environment_box], -1, (255, 0, 255), 7)
         if len(door.higher_box) > 0:
+            # Change higher rectangle's center and draw it
+            door.higher_center = (door.higher_box[0] + door.higher_box[2]) // 2
+            cv.circle(imgContour,(door.higher_center[0],door.higher_center[1]),0,(255,255,255),5)
             cv.drawContours(imgContour, [door.higher_box], -1, (255, 0, 255), 7)
             cv.putText(imgContour,'Yüksek Puan',(door.higher_box[1][0],door.higher_box[1][1]),cv.FONT_HERSHEY_DUPLEX,0.7,(0,0,255),2)
         if len(door.lower_box) > 0:
+            # Change lower rectangle's center and draw it
+            door.lower_center = (door.lower_box[0] + door.lower_box[2]) // 2
+            cv.circle(imgContour, (door.lower_center[0], door.lower_center[1]), 0, (255, 255, 255), 5)
             cv.drawContours(imgContour, [door.lower_box], -1, (255, 0, 255), 7)
             cv.putText(imgContour, 'Düşük Puan', (door.lower_box[1][0],door.lower_box[1][1]), cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 0, 255), 2)
         cv.circle(imgContour,(door.upper_corners[0][0],door.upper_corners[0][1]),0,(0,0,255),5)
@@ -89,55 +100,6 @@ def getContours(img,imgContour,door):
     # Whenever Trackbar Moves This Function Will Be Executed
 def empty(a):
     pass
-
-    # Stacking Given Images as nx3 matrix
-def stackImages(scale,imgArray):
-    rows = len(imgArray)
-    cols = len(imgArray[0])
-
-    # Checking Data Type
-    rowsAvailable = isinstance(imgArray[0],list)
-
-    # Taking Variables
-    width = imgArray[0][0].shape[1]
-    height = imgArray[0][0].shape[0]
-
-    # If Data is List Then Go
-    if rowsAvailable:
-        for x in range (0,rows):
-            for y in range (0,cols):
-
-                # If Image Width and Height Is Equals To First Image Then Resize Both Image
-                if imgArray[x][y].shape[:2] == imgArray[0][0].shape [:2]:
-                    imgArray[x][y] = cv.resize(imgArray[x][y],(0,0),None,scale,scale)
-
-                # If Image Width and Height Is Not Equals To First Image Then Resize Both Image But Different Ratios
-                else:
-                    imgArray[x][y] = cv.resize(imgArray[x][y],(imgArray[0][0].shape[1],imgArray[0][0].shape[0]),None,scale,scale)
-
-                # If Image is Grey Filtered Then Make It BGR
-                if len(imgArray[x][y].shape) == 2:
-                    imgArray[x][y] = cv.cvtColor(imgArray[x][y],cv.COLOR_GRAY2BGR)
-
-        # Create Empty Window Then Open Screens On It
-        imageBlank = np.zeros((height,width,3),np.uint8)
-        hor = [imageBlank]*rows
-        for x in range(0,rows):
-            hor[x] = np.hstack(imgArray[x])
-        ver = np.vstack(hor)
-
-    # If Data Is Not List Then Take Pictures One By One And Make All Functions Above As The Same
-    else:
-        for x in range(0,rows):
-            if imgArray[x].shape[:2] == imgArray[0].shape[:2]:
-                imgArray[x] = cv.resize(imgArray[x],(0,0),None,scale,scale)
-            else:
-                imgArray[x] = cv.resize(imgArray[x],(imgArray[0].shape[1],imgArray[0].shape[0]),None,scale,scale)
-            if len(imgArray[x].shape) == 2:
-                imgArray[x] = cv.cvtColor(imgArray[x],cv.COLOR_GRAY2BGR)
-        hor = np.hstack(imgArray)
-        ver = hor
-    return ver
 
 # Image Process Main Function
 def Rectangle_process(capture,door):
@@ -172,29 +134,23 @@ def Rectangle_process(capture,door):
     imgContour = frame.copy()
 
     # # Blur
-    blur = cv.GaussianBlur(frame, (5, 5),1)
+    blur = cv.GaussianBlur(frame, (7, 7),1)
 
     # Grey Filter
     grey = cv.cvtColor(blur, cv.COLOR_BGR2GRAY)
 
     grey = cv.bilateralFilter(grey, 1, 10, 120)
-    grey = cv.boxFilter(grey,-1,(5,5))
     # Canny Edge Detector
     canny = cv.Canny(grey, threshold1, threshold2)
-    #
-    # # Dilation Function This Function Makes Bright Pixels Brighter And Program Can See Edges More Clearly With This
-    # kernel = np.ones((3, 3))
-    # imgDil = cv.dilate(canny, kernel, iterations=1)
-    #
-    # # Erode Function This Function Makes Photo Little Smaller
-    # imgDil = cv.erode(imgDil, kernel, iterations=1)
+
+    # Puts circle shape middle of image
+    cv.circle(imgContour, (320,320), 20, (255, 255, 255), 5)
 
     # Get Contours
     getContours(canny, imgContour,door)
 
-    # Stack Images
-    imgStack = stackImages(0.8, ([frame, canny, mask], [canny, imgContour, grey]))
-    cv.imshow('All', imgStack)
+    cv.imshow('xxx',canny)
+    cv.imshow('Result', imgContour)
     return
 
 def Circle_Process(capture):
@@ -228,45 +184,3 @@ def Circle_Process(capture):
             cv.putText(output, 'Area : ' + str(int(math.pi*(i[2]**2))), (i[0] + 20, i[1]-50), cv.FONT_HERSHEY_DUPLEX, .7, (0, 255, 0), 2)
 
     cv.imshow('Circles',output)
-
-
-
-# Trackbar Interface
-cv.namedWindow('Parameters')
-cv.resizeWindow('Parameters', 640, 640)
-cv.createTrackbar('Threshold1', 'Parameters', 82, 255, empty)
-cv.createTrackbar('Threshold2', 'Parameters', 67, 255, empty)
-cv.createTrackbar('HUE Min', 'Parameters', 0, 179, empty)
-cv.createTrackbar('HUE Max', 'Parameters', 100, 179, empty)
-cv.createTrackbar('SAT Min', 'Parameters', 73, 255, empty)
-cv.createTrackbar('SAT Max', 'Parameters', 173, 255, empty)
-cv.createTrackbar('VALUE Min', 'Parameters', 0, 255, empty)
-cv.createTrackbar('VALUE Max', 'Parameters', 255, 255, empty)
-
-########################################################################################################################
-########################################################################################################################
-################################################ Main Code #############################################################
-
-# Variables
-door = Rectangle()
-
-# Capturing Video From Your Camera
-capture = cv.VideoCapture(0)
-
-# Timer Start
-door.Start_time()
-
-while True:
-    Rectangle_process(capture,door)
-    # Circle_Process(capture)
-
-
-    # Wait until you press d
-    if cv.waitKey(20) & 0xFF == ord('d'):
-        break
-
-########################################################################################################################
-# Below works for quit code
-
-capture.release()
-cv.destroyAllWindows()

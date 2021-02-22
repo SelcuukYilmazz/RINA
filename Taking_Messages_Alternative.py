@@ -40,4 +40,4 @@ while True:
 
 
 #######################################################################################################################
-    print(master.messages['LOCAL_POSITION_NED'].x)
+    print(master.messages['LOCAL_POSITION_NED'].vx)
