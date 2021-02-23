@@ -9,8 +9,8 @@ from Objects import Rectangle
 #######################################################################################################################
 #  Functions
     # Getting Contours Of Image
-def getContours(img,imgContour,door):
-    contours,hierarchy = cv.findContours(img,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
+def getContours(img, imgContour, door):
+    contours, hierarchy = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         area = cv.contourArea(cnt)
 
@@ -47,7 +47,7 @@ def getContours(img,imgContour,door):
                         break
 
                 # Controls for decent rectangle
-                if isinstance(door.environment_box[0],np.ndarray):
+                if isinstance(door.environment_box[0], np.ndarray):
                     temp = door.environment_box.view(np.ndarray)
                     temp = temp[np.lexsort((temp[:, 1],))]
                     door.upper_corners = temp[:2]
@@ -61,7 +61,7 @@ def getContours(img,imgContour,door):
         door.environment_box = [0]
         door.higher_box = []
         door.lower_box = []
-        door.area = [186,185,184]
+        door.area = [186, 185, 184]
         door.environment_center = []
         door.higher_center = []
         door.lower_center = []
