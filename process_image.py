@@ -52,7 +52,7 @@ def getContours(img, imgContour, door):
                     temp = temp[np.lexsort((temp[:, 1],))]
                     door.upper_corners = temp[:2]
                     if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 30 :
-                        print('Yamuk lan bu!')
+                        print('Yamuk!')
 
 
     door.Scan_time()
