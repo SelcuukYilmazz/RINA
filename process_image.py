@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from Objects import Rectangle
 
 
-#######################################################################################################################
+###############################################################################
 #  Functions
     # Getting Contours Of Image
 def getContours(img, imgContour, door):
@@ -51,9 +51,8 @@ def getContours(img, imgContour, door):
                     temp = door.environment_box.view(np.ndarray)
                     temp = temp[np.lexsort((temp[:, 1],))]
                     door.upper_corners = temp[:2]
-                    if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 30 :
+                    if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 30:
                         print('Yamuk!')
-
 
     door.Scan_time()
     # Reset every 1.5 seconds
@@ -77,22 +76,24 @@ def getContours(img, imgContour, door):
         if len(door.higher_box) > 0:
             # Change higher rectangle's center and draw it
             door.higher_center = (door.higher_box[0] + door.higher_box[2]) // 2
-            cv.circle(imgContour,(door.higher_center[0],door.higher_center[1]),0,(255,255,255),5)
+            cv.circle(imgContour, (door.higher_center[0], door.higher_center[1]), 0, (255, 255, 255), 5)
             cv.drawContours(imgContour, [door.higher_box], -1, (255, 0, 255), 7)
-            cv.putText(imgContour,'Yüksek Puan',(door.higher_box[1][0],door.higher_box[1][1]),cv.FONT_HERSHEY_DUPLEX,0.7,(0,0,255),2)
+            cv.putText(imgContour, 'Yüksek Puan', (door.higher_box[1][0], door.higher_box[1][1]),
+                       cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 0, 255), 2)
         if len(door.lower_box) > 0:
             # Change lower rectangle's center and draw it
             door.lower_center = (door.lower_box[0] + door.lower_box[2]) // 2
             cv.circle(imgContour, (door.lower_center[0], door.lower_center[1]), 0, (255, 255, 255), 5)
             cv.drawContours(imgContour, [door.lower_box], -1, (255, 0, 255), 7)
-            cv.putText(imgContour, 'Düşük Puan', (door.lower_box[1][0],door.lower_box[1][1]), cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 0, 255), 2)
-        cv.circle(imgContour,(door.upper_corners[0][0],door.upper_corners[0][1]),0,(0,0,255),5)
-        cv.circle(imgContour, (door.upper_corners[1][0],door.upper_corners[1][1]), 0, (0, 0, 255), 5)
-        cv.circle(imgContour,(door.environment_center[0],door.environment_center[1]), 0, (0,255,0), 15)
-        cv.putText(imgContour,'Points: ' + str(door.corners),(door.environment_center[0] + 20,door.environment_center[1] + 20), cv.FONT_HERSHEY_DUPLEX,.7,(0,255,0),2)
-        cv.putText(imgContour,'Area: ', (door.environment_center[0] + 20,door.environment_center[1] + 45),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
-        cv.putText(imgContour,'X_Axis: '+str(door.environment_center[0]),((door.environment_center[0] + 20,door.environment_center[1] + 70)),cv.FONT_HERSHEY_DUPLEX,0.7,(0,255,0),2)
-        cv.putText(imgContour,'Y_Axis: ' + str(door.environment_center[1]), ((door.environment_center[0] + 20, door.environment_center[1] + 95)),cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
+            cv.putText(imgContour, 'Düşük Puan', (door.lower_box[1][0], door.lower_box[1][1]), cv.FONT_HERSHEY_DUPLEX,
+                       0.7, (0, 0, 255), 2)
+        cv.circle(imgContour, (door.upper_corners[0][0], door.upper_corners[0][1]), 0, (0, 0, 255), 5)
+        cv.circle(imgContour, (door.upper_corners[1][0], door.upper_corners[1][1]), 0, (0, 0, 255), 5)
+        cv.circle(imgContour, (door.environment_center[0], door.environment_center[1]), 0, (0, 255, 0), 15)
+        cv.putText(imgContour, 'Points: ' + str(door.corners), (door.environment_center[0] + 20, door.environment_center[1] + 20), cv.FONT_HERSHEY_DUPLEX, .7, (0, 255, 0), 2)
+        cv.putText(imgContour, 'Area: ', (door.environment_center[0] + 20, door.environment_center[1] + 45), cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
+        cv.putText(imgContour, 'X_Axis: ' + str(door.environment_center[0]), ((door.environment_center[0] + 20, door.environment_center[1] + 70)), cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
+        cv.putText(imgContour, 'Y_Axis: ' + str(door.environment_center[1]), ((door.environment_center[0] + 20, door.environment_center[1] + 95)), cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
 
     return
 
