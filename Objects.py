@@ -13,6 +13,7 @@ class Rectangle:
     lower_center = []
     start_time,scan_time = 0,0
     upper_corners = []
+    decent_shape = True
 
 
     def Start_time(self):

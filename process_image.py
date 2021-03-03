@@ -53,6 +53,7 @@ def getContours(img, imgContour, door):
                     door.upper_corners = temp[:2]
                     if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 30:
                         print('Yamuk!')
+                        door.decent_shape = False
 
     door.Scan_time()
     # Reset every 1.5 seconds
@@ -66,6 +67,7 @@ def getContours(img, imgContour, door):
         door.lower_center = []
         door.upper_corners = []
         door.lock = False
+        door.decent_shape = True
 
     # If door locked on something then draw it
     if door.lock:
