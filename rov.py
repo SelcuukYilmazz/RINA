@@ -74,38 +74,49 @@ while True:
     process_image.Rectangle_process(capture,door)
     # process_image.Circle_Process(capture)
 
-
-    if len(door.environment_center)>0:
-        if len(door.higher_center)>0:
-            if door.higher_center[0] < 300:
-                print('yüksek sola kaydır')
-            elif door.higher_center[0] > 340:
-                print('yüksek sağa kaydır')
-            else:
-                if door.higher_center[1] < 300:
-                    print('yüksek aşağı kaydır')
-                elif door.higher_center[1] > 340:
-                    print('yüksek yukarı kaydır')
-                else:
-                    print('hizada yüksek puan')
-
-        else:
-            if len(door.lower_center)>0:
-                if door.lower_center[0] < 300:
-                    print('düşük sola kaydır')
-                elif door.lower_center[0] > 340:
-                    print('düşük sağa kaydır')
-                else:
-                    if door.lower_center[1] < 300:
-                        print('düşük aşağı kaydır')
-                    elif door.lower_center[1] > 340:
-                        print('düşük yukarı kaydır')
-                    else:
-                        print('hizada düşük puan')
-            else:
-                print('iç kapılar tespit edilemedi')
+    if door.decent_shape == False:
+        if door.upper_corners[0][1] > door.upper_corners[1][1]:
+            if door.upper_corners[0][0] < 300:
+                print('sola git ve sağa dön')
+            elif door.upper_corners[0][0] >340:
+                print('sağa git ve sola dön')
+        if door.upper_corners[0][1] < door.upper_corners[1][1]:
+            if door.upper_corners[1][0] < 300:
+                print('sola git ve sağa dön')
+            elif door.upper_corners[1][0] >340:
+                print('sağa git ve sola dön')
     else:
-        print('kapı bulunamadı aramaya devam ediliyor')
+        if len(door.environment_center)>0:
+            if len(door.higher_center)>0:
+                if door.higher_center[0] < 300:
+                    print('yüksek sola kaydır')
+                elif door.higher_center[0] > 340:
+                    print('yüksek sağa kaydır')
+                else:
+                    if door.higher_center[1] < 300:
+                        print('yüksek aşağı kaydır')
+                    elif door.higher_center[1] > 340:
+                        print('yüksek yukarı kaydır')
+                    else:
+                        print('hizada yüksek puan')
+
+            else:
+                if len(door.lower_center)>0:
+                    if door.lower_center[0] < 300:
+                        print('düşük sola kaydır')
+                    elif door.lower_center[0] > 340:
+                        print('düşük sağa kaydır')
+                    else:
+                        if door.lower_center[1] < 300:
+                            print('düşük aşağı kaydır')
+                        elif door.lower_center[1] > 340:
+                            print('düşük yukarı kaydır')
+                        else:
+                            print('hizada düşük puan')
+                else:
+                    print('iç kapılar tespit edilemedi')
+        else:
+            print('kapı bulunamadı aramaya devam ediliyor')
 
     # Wait until you press d
     if cv.waitKey(20) & 0xFF == ord('d'):
