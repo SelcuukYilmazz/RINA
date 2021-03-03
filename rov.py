@@ -5,34 +5,34 @@ import process_image
 import cv2 as cv
 
 # Create the connection
-# master = mavutil.mavlink_connection('udpin:192.168.1.3:10020')
+master = mavutil.mavlink_connection('udpin:192.168.1.57:10020')
 
 # Wait a heartbeat before sending commands
-# master.wait_heartbeat()
+master.wait_heartbeat()
 
 # Create a function to send RC values
 # More information about Joystick channels
 # here: https://www.ardusub.com/operators-manual/rc-input-and-output.html#rc-inputs
-# def set_rc_channel_pwm(channel_id, pwm=1500):
-#     """ Set RC channel pwm value
-#     Args:
-#         channel_id (TYPE): Channel ID
-#         pwm (int, optional): Channel pwm value 1100-1900
-#     """
-#     if channel_id < 1 or channel_id > 18:
-#         print("Channel does not exist.")
-#         return
-#
-#     # Mavlink 2 supports up to 18 channels:
-#     # https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
-#     # 0xFFFF = 65535 means 16 bit
-#     rc_channel_values = [65535 for _ in range(18)]
-#     rc_channel_values[channel_id - 1] = pwm
-#     master.mav.rc_channels_override_send(
-#         master.target_system,                # target_system
-#         master.target_component,             # target_component
-#         *rc_channel_values)                  # RC channel list, in microseconds.
-#     master.mav.system_time_send(0,0)
+def set_rc_channel_pwm(channel_id, pwm=1500):
+    """ Set RC channel pwm value
+    Args:
+        channel_id (TYPE): Channel ID
+        pwm (int, optional): Channel pwm value 1100-1900
+    """
+    if channel_id < 1 or channel_id > 18:
+        print("Channel does not exist.")
+        return
+
+    # Mavlink 2 supports up to 18 channels:
+    # https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
+    # 0xFFFF = 65535 means 16 bit
+    rc_channel_values = [65535 for _ in range(18)]
+    rc_channel_values[channel_id - 1] = pwm
+    master.mav.rc_channels_override_send(
+        master.target_system,                # target_system
+        master.target_component,             # target_component
+        *rc_channel_values)                  # RC channel list, in microseconds.
+    master.mav.system_time_send(0,0)
 
 
 
@@ -78,20 +78,30 @@ while True:
         if door.upper_corners[0][1] > door.upper_corners[1][1]:
             if door.upper_corners[0][0] < 300:
                 print('sola git ve sağa dön')
+                set_rc_channel_pwm(6, 1400)
+                set_rc_channel_pwm(4, 1400)
             elif door.upper_corners[0][0] >340:
                 print('sağa git ve sola dön')
+                set_rc_channel_pwm(6, 1600)
+                set_rc_channel_pwm(4, 1600)
         if door.upper_corners[0][1] < door.upper_corners[1][1]:
             if door.upper_corners[1][0] < 300:
                 print('sola git ve sağa dön')
+                set_rc_channel_pwm(6, 1400)
+                set_rc_channel_pwm(4, 1400)
             elif door.upper_corners[1][0] >340:
                 print('sağa git ve sola dön')
+                set_rc_channel_pwm(6, 1600)
+                set_rc_channel_pwm(4, 1600)
     else:
         if len(door.environment_center)>0:
             if len(door.higher_center)>0:
                 if door.higher_center[0] < 300:
                     print('yüksek sola kaydır')
+                    set_rc_channel_pwm(6, 1400)
                 elif door.higher_center[0] > 340:
                     print('yüksek sağa kaydır')
+                    set_rc_channel_pwm(6, 1600)
                 else:
                     if door.higher_center[1] < 300:
                         print('yüksek aşağı kaydır')
@@ -99,13 +109,16 @@ while True:
                         print('yüksek yukarı kaydır')
                     else:
                         print('hizada yüksek puan')
+                        set_rc_channel_pwm(5, 1600)
 
             else:
                 if len(door.lower_center)>0:
                     if door.lower_center[0] < 300:
                         print('düşük sola kaydır')
+                        set_rc_channel_pwm(6, 1400)
                     elif door.lower_center[0] > 340:
                         print('düşük sağa kaydır')
+                        set_rc_channel_pwm(6, 1600)
                     else:
                         if door.lower_center[1] < 300:
                             print('düşük aşağı kaydır')
@@ -113,6 +126,7 @@ while True:
                             print('düşük yukarı kaydır')
                         else:
                             print('hizada düşük puan')
+                            set_rc_channel_pwm(5, 1600)
                 else:
                     print('iç kapılar tespit edilemedi')
         else:
