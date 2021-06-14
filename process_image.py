@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
 import math
-import Calibration
+# import Calibration
 import matplotlib.pyplot as plt
 from Objects import Rectangle
 from Objects import Circle
@@ -52,13 +52,16 @@ def getContours(img, imgContour, door):
                             break
 
                 # Controls for decent rectangle
-                # if isinstance(door.higher_box[0], np.ndarray):
-                #     temp = door.higher_box.view(np.ndarray)
-                #     temp = temp[np.lexsort((temp[:, 1],))]
-                #     door.upper_corners = temp[:2]
-                #     if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 30:
-                #         print('Yamuk!')
-                #         door.decent_shape = False
+                if len(door.lower_box)>1:
+                        if isinstance(door.lower_box, np.ndarray):
+                            temp = door.lower_box.view(np.ndarray)
+                            temp = temp[np.lexsort((temp[:, 1],))]
+                            door.upper_corners = temp[:2]
+                            if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 20:
+                                print('Aşağı Yamuk!')
+                                door.decent_shape = False
+                            else:
+                                door.decent_shape = True
 
     door.Scan_time()
     # Reset every 1.5 seconds
@@ -150,10 +153,19 @@ def Rectangle_process(capture,door):
     mask = cv.inRange(imgHsv, lower, upper)
     result = cv.bitwise_and(frame, frame, mask=mask)
 
+
+
+
     # Detected Image (Working Image)
     imgContour = frame.copy()
 
-    # # Blur
+    coord = cv.findNonZero(mask)
+    if isinstance(coord, np.ndarray):
+        print(type(coord))
+        color_destination= np.average(coord, axis=0)
+
+
+    # Blur
     blur = cv.GaussianBlur(frame, (7, 7),1)
 
     # Grey Filter
@@ -165,12 +177,16 @@ def Rectangle_process(capture,door):
 
     # Puts circle shape middle of image
     cv.circle(imgContour, (320,320), 20, (255, 255, 255), 5)
+    if isinstance(coord, np.ndarray):
+        cv.circle(imgContour,(int(color_destination[0][0]),int(color_destination[0][1])),5,(250,100,250),5)
 
     # Get Contours
     getContours(canny, imgContour,door)
 
     cv.imshow('xxx',canny)
     cv.imshow('Result', imgContour)
+    cv.imshow('Black',result)
+
     return
 
 def Circle_Process(capture,circle):
@@ -178,6 +194,10 @@ def Circle_Process(capture,circle):
     # If Camera Captures Video Than isTrue is True
     # frame Is Captured Video
     isTrue,frame = capture.read()
+
+    # Input Taken From Trackbar to Thresholds
+    threshold1 = cv.getTrackbarPos('Threshold1', 'Parameters')
+    threshold2 = cv.getTrackbarPos('Threshold2', 'Parameters')
 
     # Copied Original Image to output variable
     output = frame.copy()
@@ -195,21 +215,27 @@ def Circle_Process(capture,circle):
     cv.circle(output, (320, 270), 20, (255, 255, 255), 5)
 
     # If Any Circle Detected Then Go
+    circle.Scan_time()
+    print(circle.scan_time)
+    if circle.scan_time > 1.5:
+        circle.area = 0
+        circle.lock_coordinate = []
+        circle.box = []
+        circle.Start_time()
     if type(all_circs) != type(None):
             # Make Circle Around Circles
             all_circs_rounded = np.uint16(np.around(all_circs))
             for i in all_circs_rounded[0,:]:
-                circle.Scan_time()
-                if circle.area == 0 or circle.area > int(math.pi * (i[2] ** 2)) or circle.scan_time>3:
+                if circle.area == 0 or circle.area > int(math.pi * (i[2] ** 2)):
                     circle.Start_time()
                     circle.area = int(math.pi * (i[2] ** 2))
-                    circle.lock_coordinate = [i[0]+i[2]-5,i[1]]
+                    circle.lock_coordinate = [i[0]+i[2]-20,i[1]]
                     circle.box=i
 
 
     if len(circle.box)!=0:
         cv.circle(output, (circle.box[0], circle.box[1]), circle.box[2], (50, 200, 200), 5)
-        cv.circle(output, (circle.box[0] + circle.box[2] - 5, circle.box[1]), 5, (255, 0, 0), 3)
+        cv.circle(output, (circle.box[0] + circle.box[2] - 20, circle.box[1]), 5, (255, 0, 0), 3)
         cv.putText(output, 'Center x: ' + str(circle.box[0]), (circle.box[2] + 20, circle.box[1]), cv.FONT_HERSHEY_DUPLEX, .7, (0, 255, 0), 2)
         cv.putText(output, 'Center y: ' + str(circle.box[1]), (circle.box[2] + 20, circle.box[1] - 25), cv.FONT_HERSHEY_DUPLEX, .7, (0, 255, 0), 2)
         cv.putText(output, 'Area : ' + str(circle.area), (circle.box[0] + 20, circle.box[1] - 50), cv.FONT_HERSHEY_DUPLEX, .7,

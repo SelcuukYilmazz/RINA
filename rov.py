@@ -4,16 +4,16 @@ from  Objects import Rectangle
 from Objects import Circle
 import process_image
 import cv2 as cv
-#
-# # Create the connection
-# master = mavutil.mavlink_connection('udpin:192.168.1.57:10020')
-#
-# # Wait a heartbeat before sending commands
+
+# Create the connection
+# master = mavutil.mavlink_connection('udpin:192.168.1.5:10020')
+
+# Wait a heartbeat before sending commands
 # master.wait_heartbeat()
-#
-# # Create a function to send RC values
-# # More information about Joystick channels
-# # here: https://www.ardusub.com/operators-manual/rc-input-and-output.html#rc-inputs
+
+# Create a function to send RC values
+# More information about Joystick channels
+# here: https://www.ardusub.com/operators-manual/rc-input-and-output.html#rc-inputs
 # def set_rc_channel_pwm(channel_id, pwm=1500):
 #     """ Set RC channel pwm value
 #     Args:
@@ -34,7 +34,7 @@ import cv2 as cv
 #         master.target_component,             # target_component
 #         *rc_channel_values)                  # RC channel list, in microseconds.
 #     master.mav.system_time_send(0,0)
-#
+
 
 def first_mission(capture,door):
     process_image.Rectangle_process(capture, door)
@@ -98,17 +98,20 @@ def first_mission(capture,door):
 
 def second_mission(capture,circle):
     process_image.Circle_Process(capture, circle)
-    if len(circle.lock_coordinate)>0:
-        if circle.lock_coordinate[0]<300:
-            print("saga git")
-        elif circle.lock_coordinate[0]>340:
-            print("sola git")
-        elif circle.lock_coordinate[1]<250:
-            print("asagi git")
-        elif circle.lock_coordinate[1]>290:
-            print("yukari git")
-        else:
-            print("hedef ileride")
+    # if len(circle.lock_coordinate)>0:
+    #     if circle.lock_coordinate[0]<300:
+    #         print("saga git")
+    #         set_rc_channel_pwm(6, 1600)
+    #     elif circle.lock_coordinate[0]>340:
+    #         print("sola git")
+    #         set_rc_channel_pwm(6, 1400)
+    #     elif circle.lock_coordinate[1]<250:
+    #         print("asagi git")
+    #     elif circle.lock_coordinate[1]>290:
+    #         print("yukari git")
+    #     else:
+    #         print("hedef ileride")
+    #         set_rc_channel_pwm(5, 1600)
     print(circle.lock_coordinate)
 
 # Trackbar Interface
