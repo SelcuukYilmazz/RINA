@@ -1,16 +1,17 @@
 import time
+import numpy as np
 
 class Rectangle:
     lock = False
     corners = 0
-    area = [185,184]
+    area = np.array([185,184])
     time = 0
-    higher_box = []
-    lower_box = []
-    higher_center = []
-    lower_center = []
+    higher_box = np.array([])
+    lower_box = np.array([])
+    higher_center =np.array([])
+    lower_center = np.array([])
     start_time,scan_time = 0,0
-    upper_corners = []
+    upper_corners = np.array([])
     decent_shape = True
 
 
@@ -25,8 +26,8 @@ class Rectangle:
 
 class Circle:
     lock = False
-    lock_coordinate = []
-    box=[]
+    lock_coordinate = np.array([])
+    box = np.array([])
     area=0
     time = 0
     def Start_time(self):

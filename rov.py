@@ -4,6 +4,7 @@ from  Objects import Rectangle
 from Objects import Circle
 import process_image
 import cv2 as cv
+import time
 
 # Create the connection
 # master = mavutil.mavlink_connection('udpin:192.168.1.5:10020')
@@ -136,13 +137,19 @@ circle = Circle()
 
 # Capturing Video From Your Camera
 capture = cv.VideoCapture(0)
+capture.set(cv.CAP_PROP_FPS, 20)
+capture.set(cv.CAP_PROP_FRAME_WIDTH, int(320))
+capture.set(cv.CAP_PROP_FRAME_HEIGHT, int(240))
 
 # Timer Start
 door.Start_time()
 circle.Start_time()
 while True:
-    first_mission(capture,door)
-    # second_mission(capture,circle)
+    frame1 = time.time()
+    # first_mission(capture,door)
+    second_mission(capture,circle)
+    frame2 = time.time()
+    print("ALL FPS " + str(1/(frame2-frame1)))
 
     # Wait until you press d
     if cv.waitKey(20) & 0xFF == ord('d'):
