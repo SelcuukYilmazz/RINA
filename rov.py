@@ -1,11 +1,12 @@
 # Import mavutil
-#from pymavlink import mavutil
+import sys
+
+from pymavlink import mavutil
 from  Objects import Rectangle
 from Objects import Circle
 import process_image
 import cv2 as cv
 import time
-import scan
 
 # Create the connection
 # master = mavutil.mavlink_connection('udpin:192.168.1.5:10020')
@@ -98,6 +99,23 @@ def first_mission(capture,door):
                 print('kapı bulunamadı aramaya devam ediliyor')
 
 
+def second_mission(capture,circle):
+    process_image.Circle_Process(capture, circle)
+    # if len(circle.lock_coordinate)>0:
+    #     if circle.lock_coordinate[0]<300:
+    #         print("saga git")
+    #         set_rc_channel_pwm(6, 1600)
+    #     elif circle.lock_coordinate[0]>340:
+    #         print("sola git")
+    #         set_rc_channel_pwm(6, 1400)
+    #     elif circle.lock_coordinate[1]<250:
+    #         print("asagi git")
+    #     elif circle.lock_coordinate[1]>290:
+    #         print("yukari git")
+    #     else:
+    #         print("hedef ileride")
+    #         set_rc_channel_pwm(5, 1600)
+    print(circle.lock_coordinate)
 
 # Trackbar Interface
 cv.namedWindow('Parameters')
@@ -112,30 +130,34 @@ cv.createTrackbar('VALUE Min', 'Parameters', 0, 255, process_image.empty)
 cv.createTrackbar('VALUE Max', 'Parameters', 255, 255, process_image.empty)
 
 ########################################################################################################################
+########################################################################################################################
 ################################################ Main Code #############################################################
 
 # Variables
 door = Rectangle()
-
+circle = Circle()
 
 # Capturing Video From Your Camera
 capture = cv.VideoCapture(0)
 capture.set(cv.CAP_PROP_FPS, 20)
 capture.set(cv.CAP_PROP_FRAME_WIDTH, int(320))
 capture.set(cv.CAP_PROP_FRAME_HEIGHT, int(240))
+cv.waitKey(10)
 
 # Timer Start
 door.Start_time()
-
+circle.Start_time()
 while True:
     frame1 = time.time()
-    # first_mission(capture,door)
-    second_mission(capture,circle)
+    if(sys.argv[1] == "1"):
+        first_mission(capture,door)
+    if (sys.argv[1] == "2"):
+        second_mission(capture,circle)
     frame2 = time.time()
     print("ALL FPS " + str(1/(frame2-frame1)))
 
     # Wait until you press d
-    if cv.waitKey(20) & 0xFF == ord('d'):
+    if cv.waitKey(10) & 0xFF == ord('d'):
         break
 
 ########################################################################################################################

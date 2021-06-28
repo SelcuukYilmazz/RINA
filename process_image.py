@@ -66,7 +66,7 @@ def getContours(img, imgContour, door):
 
     door.Scan_time()
     # Reset every 1.5 seconds
-    if door.scan_time >= 1.5:
+    if door.scan_time >= 0.65:
         door.higher_box = np.array([])
         door.lower_box = np.array([])
         door.area = np.array([185, 184])
@@ -236,7 +236,7 @@ def Circle_Process(capture,circle):
 
     # Detecting Circles Are In all_circs
     frame1 = time.time()
-    all_circs = cv.HoughCircles(gray,cv.HOUGH_GRADIENT,0.9,120,param1=60,param2=30,minRadius=60,maxRadius=500)
+    all_circs = cv.HoughCircles(gray,cv.HOUGH_GRADIENT,0.6,120,param1=60,param2=30,minRadius=10,maxRadius=500)
     frame2 = time.time()
     print("3 " + str((frame2 - frame1)))
 
@@ -246,7 +246,7 @@ def Circle_Process(capture,circle):
     # If Any Circle Detected Then Go
     frame1 = time.time()
     circle.Scan_time()
-    if circle.scan_time > 1.5:
+    if circle.scan_time > 0.65:
         circle.area = 0
         circle.lock_coordinate = np.array([])
         circle.box = np.array([])
