@@ -22,8 +22,6 @@ class Rectangle:
     def Scan_time(self):
         self.scan_time = time.time() - self.start_time
         return self.scan_time
-
-
 class Circle:
     lock = False
     lock_coordinate = np.array([])

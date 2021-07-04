@@ -11,6 +11,25 @@ from Objects import Circle
 ###############################################################################
 #  Functions
     # Getting Contours Of Image
+def colorMask(frame):
+    # Color Detection Trackbars
+
+    hueMin = cv.getTrackbarPos('HUE Min', 'Parameters')
+    hueMax = cv.getTrackbarPos('HUE Max', 'Parameters')
+    satMin = cv.getTrackbarPos('SAT Min', 'Parameters')
+    satMax = cv.getTrackbarPos('SAT Max', 'Parameters')
+    valMin = cv.getTrackbarPos('VALUE Min', 'Parameters')
+    valMax = cv.getTrackbarPos('VALUE Max', 'Parameters')
+
+    # Original Image to HSV
+    imgHsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    # Color Detection Numpy Matrix
+    lower = np.array([hueMin, satMin, valMin])
+    upper = np.array([hueMax, satMax, valMax])
+    mask = cv.inRange(imgHsv, lower, upper)
+    return mask
+
 def getContours(img, imgContour, door):
     contours, hierarchy = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
@@ -59,7 +78,7 @@ def getContours(img, imgContour, door):
                             temp = temp[np.lexsort((temp[:, 1],))]
                             door.upper_corners = temp[:2]
                             if abs(door.upper_corners[0][1] - door.upper_corners[1][1]) >= 20:
-                                print('Aşağı Yamuk!')
+                                print('Yamuk!')
                                 door.decent_shape = False
                             else:
                                 door.decent_shape = True
@@ -126,128 +145,65 @@ def empty(a):
     pass
 
 # Image Process Main Function
-def Rectangle_process(capture,door):
-
-    # If Camera Captures Video Than isTrue is True
-    # frame Is Captured Video
-    frame1 = cv.getTickCount()
-    isTrue, frame = capture.read()
-    frame2 = cv.getTickCount()
-    print("1 "+str((frame2 - frame1) / cv.getTickFrequency()))
+def Rectangle_process(frame, door):
 
     # Input Taken From Trackbar to Thresholds
     threshold1 = cv.getTrackbarPos('Threshold1', 'Parameters')
     threshold2 = cv.getTrackbarPos('Threshold2', 'Parameters')
 
-    # Color Detection Trackbars
-    hueMin = cv.getTrackbarPos('HUE Min', 'Parameters')
-    hueMax = cv.getTrackbarPos('HUE Max', 'Parameters')
-    satMin = cv.getTrackbarPos('SAT Min', 'Parameters')
-    satMax = cv.getTrackbarPos('SAT Max', 'Parameters')
-    valMin = cv.getTrackbarPos('VALUE Min', 'Parameters')
-    valMax = cv.getTrackbarPos('VALUE Max', 'Parameters')
-
-    # Original Image to HSV
-    frame1 = cv.getTickCount()
-    imgHsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-    frame2 = cv.getTickCount()
-    print("2 "+str((frame2 - frame1) / cv.getTickFrequency()))
-
-    # Color Detection Numpy Matrix
-    frame1 = cv.getTickCount()
-    lower = np.array([hueMin, satMin, valMin])
-    upper = np.array([hueMax, satMax, valMax])
-    mask = cv.inRange(imgHsv, lower, upper)
-    frame2 = cv.getTickCount()
-    print("3 " + str((frame2 - frame1) / cv.getTickFrequency()))
-
-
+    mask = colorMask(frame)
 
     # Detected Image (Working Image)
     imgContour = frame.copy()
 
-    frame1 = cv.getTickCount()
-    coord = cv.findNonZero(mask)
-    if isinstance(coord, np.ndarray):
-        print(type(coord))
-        color_destination= np.average(coord, axis=0)
-    frame2 = cv.getTickCount()
-    print("4 " + str((frame2 - frame1) / cv.getTickFrequency()))
-
     # Blur
-    frame1 = cv.getTickCount()
-    frame = cv.GaussianBlur(frame, (7, 7),1)
-    frame2 = cv.getTickCount()
-    print("5 " + str((frame2 - frame1) / cv.getTickFrequency()))
-
+    frame = cv.GaussianBlur(mask, (7, 7), 1)
     # Grey Filter
-    frame1 = cv.getTickCount()
-    frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    # frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     # grey = cv.bilateralFilter(grey, 1, 10, 120)
-    frame2 = cv.getTickCount()
-    print("6 " + str((frame2 - frame1) / cv.getTickFrequency()))
     # Canny Edge Detector
-    frame1 = cv.getTickCount()
     frame = cv.Canny(frame, threshold1, threshold2)
-    frame2 = cv.getTickCount()
-    print("7 " + str((frame2 - frame1) / cv.getTickFrequency()))
 
     # Puts circle shape middle of image
-    cv.circle(imgContour, (320,320), 20, (255, 255, 255), 5)
-    if isinstance(coord, np.ndarray):
-        cv.circle(imgContour,(int(color_destination[0][0]),int(color_destination[0][1])),5,(250,100,250),5)
+    cv.circle(imgContour, (320, 320), 20, (255, 255, 255), 5)
 
     # Get Contours
-    frame1 = cv.getTickCount()
-    getContours(frame, imgContour,door)
-    frame2 = cv.getTickCount()
-    print("8 " + str((frame2 - frame1) / cv.getTickFrequency()))
+    getContours(frame, imgContour, door)
 
     # cv.imshow('xxx',canny)
     cv.imshow('Result', imgContour)
-    # cv.imshow('Black',result)
-
+    cv.imshow('Black', mask)
     return
 
-def Circle_Process(capture,circle):
-
-    # If Camera Captures Video Than isTrue is True
-    # frame Is Captured Video
-    isTrue,frame = capture.read()
+def Circle_Process(circle,frame):
 
     # Input Taken From Trackbar to Thresholds
     threshold1 = cv.getTrackbarPos('Threshold1', 'Parameters')
     threshold2 = cv.getTrackbarPos('Threshold2', 'Parameters')
 
+
     # Copied Original Image to output variable
     output = frame.copy()
+    # Color Mask
+    mask = colorMask(frame)
 
     # Changing Color of Image to Gray So We Can Detect Edges Easily
-    frame1 = time.time()
-    gray = cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
-    frame2 = time.time()
-    print("1 " + str((frame2 - frame1)))
+    # gray = cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
 
     # Doing Blur on Image So We Can Detect Edges Easily
-    frame1 = time.time()
-    gray = cv.GaussianBlur(gray,(19,19),cv.BORDER_DEFAULT)
-    frame2 = time.time()
-    print("2 " + str((frame2 - frame1)))
+    gray = cv.GaussianBlur(mask,(5,5),cv.BORDER_DEFAULT)
 
     # Detecting Circles Are In all_circs
-    frame1 = time.time()
-    all_circs = cv.HoughCircles(gray,cv.HOUGH_GRADIENT,0.6,120,param1=60,param2=30,minRadius=10,maxRadius=500)
-    frame2 = time.time()
-    print("3 " + str((frame2 - frame1)))
+    all_circs = cv.HoughCircles(gray,cv.HOUGH_GRADIENT,0.6,120,param1=threshold1,param2=threshold2,minRadius=1,maxRadius=500)
 
     # Puts circle shape middle of image
     cv.circle(output, (320, 270), 20, (255, 255, 255), 5)
 
     # If Any Circle Detected Then Go
-    frame1 = time.time()
     circle.Scan_time()
-    if circle.scan_time > 0.65:
+    if circle.scan_time > 1:
         circle.area = 0
+        circle.lock = False
         circle.lock_coordinate = np.array([])
         circle.box = np.array([])
         circle.Start_time()
@@ -260,8 +216,7 @@ def Circle_Process(capture,circle):
                     circle.area = int(math.pi * (i[2] ** 2))
                     circle.lock_coordinate = [i[0]+i[2]-20,i[1]]
                     circle.box=i
-    frame2 = time.time()
-    print("4 " + str((frame2 - frame1)))
+                    circle.lock=True
 
 
     if len(circle.box)!=0:
@@ -273,3 +228,4 @@ def Circle_Process(capture,circle):
                    (0, 255, 0), 2)
 
     cv.imshow('Circles',output)
+    cv.imshow("Mask",mask)
