@@ -110,10 +110,10 @@ def getContours(img, imgContour, door):
             cv.putText(imgContour, 'Area: ', (door.higher_center[0] + 20, door.higher_center[1] + 45),
                        cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
             cv.putText(imgContour, 'X_Axis: ' + str(door.higher_center[0]),
-                       ((door.higher_center[0] + 20, door.higher_center[1] + 70)), cv.FONT_HERSHEY_DUPLEX, 0.7,
+                       (door.higher_center[0] + 20, door.higher_center[1] + 70), cv.FONT_HERSHEY_DUPLEX, 0.7,
                        (0, 255, 0), 2)
             cv.putText(imgContour, 'Y_Axis: ' + str(door.higher_center[1]),
-                       ((door.higher_center[0] + 20, door.higher_center[1] + 95)), cv.FONT_HERSHEY_DUPLEX, 0.7,
+                       (door.higher_center[0] + 20, door.higher_center[1] + 95), cv.FONT_HERSHEY_DUPLEX, 0.7,
                        (0, 255, 0), 2)
         if len(door.lower_box) == 4:
             # Change lower rectangle's center and draw it
@@ -128,10 +128,10 @@ def getContours(img, imgContour, door):
             cv.putText(imgContour, 'Area: ', (door.lower_center[0] + 20, door.lower_center[1] + 45),
                        cv.FONT_HERSHEY_DUPLEX, 0.7, (0, 255, 0), 2)
             cv.putText(imgContour, 'X_Axis: ' + str(door.lower_center[0]),
-                       ((door.lower_center[0] + 20, door.lower_center[1] + 70)), cv.FONT_HERSHEY_DUPLEX, 0.7,
+                       (door.lower_center[0] + 20, door.lower_center[1] + 70), cv.FONT_HERSHEY_DUPLEX, 0.7,
                        (0, 255, 0), 2)
             cv.putText(imgContour, 'Y_Axis: ' + str(door.lower_center[1]),
-                       ((door.lower_center[0] + 20, door.lower_center[1] + 95)), cv.FONT_HERSHEY_DUPLEX, 0.7,
+                       (door.lower_center[0] + 20, door.lower_center[1] + 95), cv.FONT_HERSHEY_DUPLEX, 0.7,
                        (0, 255, 0), 2)
         # cv.circle(imgContour, (door.upper_corners[0][0], door.upper_corners[0][1]), 0, (0, 0, 255), 5)
         # cv.circle(imgContour, (door.upper_corners[1][0], door.upper_corners[1][1]), 0, (0, 0, 255), 5)
@@ -218,7 +218,6 @@ def Circle_Process(circle,frame):
                     circle.box=i
                     circle.lock=True
 
-
     if len(circle.box)!=0:
         cv.circle(output, (circle.box[0], circle.box[1]), circle.box[2], (50, 200, 200), 5)
         cv.circle(output, (circle.box[0] + circle.box[2] - 20, circle.box[1]), 5, (255, 0, 0), 3)
@@ -227,5 +226,5 @@ def Circle_Process(circle,frame):
         cv.putText(output, 'Area : ' + str(circle.area), (circle.box[0] + 20, circle.box[1] - 50), cv.FONT_HERSHEY_DUPLEX, .7,
                    (0, 255, 0), 2)
 
-    cv.imshow('Circles',output)
-    cv.imshow("Mask",mask)
+    cv.imshow('Circles', output)
+    cv.imshow("Mask", mask)
