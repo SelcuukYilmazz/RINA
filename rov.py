@@ -6,6 +6,8 @@ from Objects import Circle
 import process_image
 import cv2 as cv
 import time
+
+
 # Create the connection
 # master = mavutil.mavlink_connection('udpin:10.42.0.1:10020')
 #
@@ -163,7 +165,6 @@ class VideoWriterWidget(object):
                             # set_rc_channel_pwm(5, 1600)
                 else:
                     print('kapı bulunamadı aramaya devam ediliyor')
-
 
     def second_mission(self,circle,frame):
         process_image.Circle_Process(circle,frame)
