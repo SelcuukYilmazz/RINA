@@ -6,8 +6,6 @@ from Objects import Circle
 import process_image
 import cv2 as cv
 import time
-
-
 # Create the connection
 # master = mavutil.mavlink_connection('udpin:10.42.0.1:10020')
 #
@@ -42,6 +40,8 @@ class VideoWriterWidget(object):
     def __init__(self):
         # Create a VideoCapture objectw
         self.capture = cv.VideoCapture(0)
+        self.capture.set(cv.CAP_PROP_FRAME_WIDTH,320)
+        self.capture.set(cv.CAP_PROP_FRAME_HEIGHT,240)
 
 
         # Default resolutions of the frame are obtained (system dependent)
@@ -51,16 +51,43 @@ class VideoWriterWidget(object):
         door.Start_time()
         circle.Start_time()
         # Start another thread to show/save frames
-        self.start_recording(door,circle)
+        scanning_thread = Thread(target=self.scanning, args=[door, circle])
+        scanning_thread.start()
         # Read the next frame from the stream in a different thread
         # Timer Start
 
-        while True:
+        if (sys.argv[1]=="1"):
+            cv.namedWindow('Parameters')
+            cv.resizeWindow('Parameters', 1000, 1000)
+            cv.createTrackbar('Threshold1', 'Parameters', 30, 255, process_image.empty)
+            cv.createTrackbar('Threshold2', 'Parameters', 19, 255, process_image.empty)
+            cv.createTrackbar('HUE Min', 'Parameters', 97, 360, process_image.empty)
+            cv.createTrackbar('HUE Max', 'Parameters', 129, 360, process_image.empty)
+            cv.createTrackbar('SAT Min', 'Parameters', 0, 255, process_image.empty)
+            cv.createTrackbar('SAT Max', 'Parameters', 44, 255, process_image.empty)
+            cv.createTrackbar('VALUE Min', 'Parameters', 175, 255, process_image.empty)
+            cv.createTrackbar('VALUE Max', 'Parameters', 227, 255, process_image.empty)
+            cv.createTrackbar('Brightness', 'Parameters', 255, 2 * 255, process_image.empty)
+            cv.createTrackbar('Contrast', 'Parameters', 127, 2 * 127, process_image.empty)
+        elif (sys.argv[1] == "2"):
+            cv.namedWindow('Parameters')
+            cv.resizeWindow('Parameters', 1000, 1000)
+            cv.createTrackbar('Threshold1', 'Parameters', 30, 255, process_image.empty)
+            cv.createTrackbar('Threshold2', 'Parameters', 19, 255, process_image.empty)
+            cv.createTrackbar('HUE Min', 'Parameters', 96, 360, process_image.empty)
+            cv.createTrackbar('HUE Max', 'Parameters', 132, 360, process_image.empty)
+            cv.createTrackbar('SAT Min', 'Parameters', 16, 255, process_image.empty)
+            cv.createTrackbar('SAT Max', 'Parameters', 86, 255, process_image.empty)
+            cv.createTrackbar('VALUE Min', 'Parameters', 51, 255, process_image.empty)
+            cv.createTrackbar('VALUE Max', 'Parameters', 123, 255, process_image.empty)
+            cv.createTrackbar('Brightness', 'Parameters', 255, 2 * 255, process_image.empty)
+            cv.createTrackbar('Contrast', 'Parameters', 127, 2 * 127, process_image.empty)
 
+        while True:
             self.status, frame = self.capture.read()
             if (sys.argv[1] == "1"):
                 self.first_mission(door,frame)
-            if (sys.argv[1] == "2"):
+            elif (sys.argv[1] == "2"):
                 self.second_mission(circle,frame)
             # Wait until you press d
             if cv.waitKey(10) & 0xFF == ord('d'):
@@ -72,34 +99,24 @@ class VideoWriterWidget(object):
         self.capture.release()
         cv.destroyAllWindows()
 
-    def start_recording(self,door,circle):
-        # Create another thread to show/save frames
-        scanning_thread = Thread(target=self.scanning,args=[door,circle])
-        scanning_thread.start()
-
-
-
-
-
     def scanning(self,door,circle):
         initialize_time = time.time()
         current_time = time.time()
 
-        while current_time - initialize_time<=5:
+        while current_time - initialize_time<=10 and circle.lock != True and door.lock != True:
             current_time = time.time()
             #depth
-            if circle.lock != True and door.lock != True:
-                if current_time - initialize_time<= 2:
-                    self.move(3,1400)
-                    print("aşağı scan")
-                #forward
-                elif current_time - initialize_time <= 4:
-                    self.move(5,1900)
-                    print("ileri scan")
-                #yaw
-                elif current_time - initialize_time <= 5:
-                    self.move(4,1200)
-                    print("dönüş scan")
+            if current_time - initialize_time<= 4:
+                self.move(3,1400)
+                print("asagı scan")
+            #forward
+            elif current_time - initialize_time <= 8:
+                self.move(5,1900)
+                print("ileri scan")
+            #yaw
+            elif current_time - initialize_time <= 10:
+                self.move(4,1200)
+                print("donus scan")
 
 
 
@@ -113,58 +130,59 @@ class VideoWriterWidget(object):
         if door.decent_shape == False:
             if door.upper_corners[0][1] > door.upper_corners[1][1]:
                 if door.upper_corners[0][0] < 300:
-                    print('sola git ve sağa dön')
+                    print('sola git ve saga don')
                     # set_rc_channel_pwm(6, 1400)
                     # set_rc_channel_pwm(4, 1400)
                 elif door.upper_corners[0][0] > 340:
-                    print('sağa git ve sola dön')
+                    print('saga git ve sola don')
                     # set_rc_channel_pwm(6, 1600)
                     # set_rc_channel_pwm(4, 1600)
             if door.upper_corners[0][1] < door.upper_corners[1][1]:
                 if door.upper_corners[1][0] < 300:
-                    print('sola git ve sağa dön')
+                    print('sola git ve saga don')
                     # set_rc_channel_pwm(6, 1400)
                     # set_rc_channel_pwm(4, 1400)
                 elif door.upper_corners[1][0] > 340:
-                    print('sağa git ve sola dön')
+                    print('saga git ve sola don')
                     # set_rc_channel_pwm(6, 1600)
                     # set_rc_channel_pwm(4, 1600)
         else:
 
             if len(door.higher_center) > 0:
                 if door.higher_center[0] < 300:
-                    print('yüksek sola kaydır')
+                    print('yuksek sola kaydir')
                     # set_rc_channel_pwm(6, 1400)
                 elif door.higher_center[0] > 340:
-                    print('yüksek sağa kaydır')
+                    print('yuksek saga kaydir')
                     # set_rc_channel_pwm(6, 1600)
                 else:
                     if door.higher_center[1] < 300:
-                        print('yüksek aşağı kaydır')
+                        print('yuksek asagi kaydir')
                     elif door.higher_center[1] > 340:
-                        print('yüksek yukarı kaydır')
+                        print('yuksek yukari kaydir')
                     else:
-                        print('hizada yüksek puan')
+                        print('hizada yuksek puan')
                         # set_rc_channel_pwm(5, 1600)
 
             else:
                 if len(door.lower_center) > 0:
                     if door.lower_center[0] < 300:
-                        print('düşük sola kaydır')
+                        print('dusuk sola kaydir')
                         # set_rc_channel_pwm(6, 1400)
                     elif door.lower_center[0] > 340:
-                        print('düşük sağa kaydır')
+                        print('dusuk saga kaydir')
                         # set_rc_channel_pwm(6, 1600)
                     else:
                         if door.lower_center[1] < 300:
-                            print('düşük aşağı kaydır')
+                            print('dusuk asagi kaydir')
                         elif door.lower_center[1] > 340:
-                            print('düşük yukarı kaydır')
+                            print('dusuk yukari kaydir')
                         else:
-                            print('hizada düşük puan')
+                            print('hizada dusuk puan')
                             # set_rc_channel_pwm(5, 1600)
                 else:
-                    print('kapı bulunamadı aramaya devam ediliyor')
+                    print('kapi bulunamadi aramaya devam ediliyor')
+
 
     def second_mission(self,circle,frame):
         process_image.Circle_Process(circle,frame)
@@ -183,21 +201,6 @@ class VideoWriterWidget(object):
                 print("hedef ileride")
                 # set_rc_channel_pwm(5, 1600)
         print(circle.lock_coordinate)
-
-# Trackbar Interface
-cv.namedWindow('Parameters')
-cv.resizeWindow('Parameters', 1000,1000)
-cv.createTrackbar('Threshold1', 'Parameters', 30, 255, process_image.empty)
-cv.createTrackbar('Threshold2', 'Parameters', 19, 255, process_image.empty)
-cv.createTrackbar('HUE Min', 'Parameters', 0, 360, process_image.empty)
-cv.createTrackbar('HUE Max', 'Parameters', 100, 360, process_image.empty)
-cv.createTrackbar('SAT Min', 'Parameters', 73, 255, process_image.empty)
-cv.createTrackbar('SAT Max', 'Parameters', 173, 255, process_image.empty)
-cv.createTrackbar('VALUE Min', 'Parameters', 0, 255, process_image.empty)
-cv.createTrackbar('VALUE Max', 'Parameters', 255, 255, process_image.empty)
-cv.createTrackbar('Brightness', 'Parameters',255, 2 * 255,process_image.empty)
-cv.createTrackbar('Contrast', 'Parameters',127, 2 * 127,process_image.empty)
-
 ########################################################################################################################
 ########################################################################################################################
 ################################################ Main Code #############################################################
