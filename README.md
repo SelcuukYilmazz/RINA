@@ -1,4 +1,4 @@
-# HUROV_Submarine
+# RINA
 
 ## To Use Process_Rectangle:
 First you need to import Door.py as ```from Objects import Rectangle```
