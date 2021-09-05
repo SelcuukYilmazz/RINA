@@ -3,11 +3,13 @@ from pymavlink import mavutil
 from threading import Thread
 from  Objects import Rectangle
 from Objects import Circle
+from dronekit import connect
 import process_image
 import cv2 as cv
 import time
 # Create the connection
 # master = mavutil.mavlink_connection('udpin:10.42.0.1:10020')
+# vehicle = connect('/dev/ttyAMA0', wait_ready=True, baud=57600)
 #
 # Wait a heartbeat before sending commands
 # master.wait_heartbeat()
@@ -36,7 +38,7 @@ import time
 #         *rc_channel_values)                  # RC channel list, in microseconds.
 #     master.mav.system_time_send(0,0)
 
-class VideoWriterWidget(object):
+class MainThread(object):
     def __init__(self):
         # Create a VideoCapture objectw
         self.capture = cv.VideoCapture(0)
@@ -57,32 +59,9 @@ class VideoWriterWidget(object):
         # Timer Start
 
         if (sys.argv[1]=="1"):
-            cv.namedWindow('Parameters')
-            cv.resizeWindow('Parameters', 1000, 1000)
-            cv.createTrackbar('Threshold1', 'Parameters', 30, 255, process_image.empty)
-            cv.createTrackbar('Threshold2', 'Parameters', 19, 255, process_image.empty)
-            cv.createTrackbar('HUE Min', 'Parameters', 97, 360, process_image.empty)
-            cv.createTrackbar('HUE Max', 'Parameters', 129, 360, process_image.empty)
-            cv.createTrackbar('SAT Min', 'Parameters', 0, 255, process_image.empty)
-            cv.createTrackbar('SAT Max', 'Parameters', 44, 255, process_image.empty)
-            cv.createTrackbar('VALUE Min', 'Parameters', 175, 255, process_image.empty)
-            cv.createTrackbar('VALUE Max', 'Parameters', 227, 255, process_image.empty)
-            cv.createTrackbar('Brightness', 'Parameters', 255, 2 * 255, process_image.empty)
-            cv.createTrackbar('Contrast', 'Parameters', 127, 2 * 127, process_image.empty)
+            self.TrackbarCreator(30, 19, 97, 129, 0, 44, 175, 227, 255, 127)
         elif (sys.argv[1] == "2"):
-            cv.namedWindow('Parameters')
-            cv.resizeWindow('Parameters', 1000, 1000)
-            cv.createTrackbar('Threshold1', 'Parameters', 30, 255, process_image.empty)
-            cv.createTrackbar('Threshold2', 'Parameters', 19, 255, process_image.empty)
-            cv.createTrackbar('HUE Min', 'Parameters', 96, 360, process_image.empty)
-            cv.createTrackbar('HUE Max', 'Parameters', 132, 360, process_image.empty)
-            cv.createTrackbar('SAT Min', 'Parameters', 16, 255, process_image.empty)
-            cv.createTrackbar('SAT Max', 'Parameters', 86, 255, process_image.empty)
-            cv.createTrackbar('VALUE Min', 'Parameters', 51, 255, process_image.empty)
-            cv.createTrackbar('VALUE Max', 'Parameters', 123, 255, process_image.empty)
-            cv.createTrackbar('Brightness', 'Parameters', 255, 2 * 255, process_image.empty)
-            cv.createTrackbar('Contrast', 'Parameters', 127, 2 * 127, process_image.empty)
-
+            self.TrackbarCreator(30, 19, 96, 132, 16, 86, 51, 123, 255, 127)
         while True:
             self.status, frame = self.capture.read()
             if (sys.argv[1] == "1"):
@@ -201,12 +180,21 @@ class VideoWriterWidget(object):
                 print("hedef ileride")
                 # set_rc_channel_pwm(5, 1600)
         print(circle.lock_coordinate)
-########################################################################################################################
-########################################################################################################################
-################################################ Main Code #############################################################
 
-# Variables
+    def TrackbarCreator(self,defaultTh1,defaultTh2,defaultHueMin,defaultHueMax,defaultSatMin,defaultSatMax,
+                        defaultValueMin,defaultValueMax,defaultBrightness,defaultContrast):
+        cv.namedWindow('Parameters')
+        cv.resizeWindow('Parameters', 1000, 1000)
+        cv.createTrackbar('Threshold1', 'Parameters', defaultTh1, 255, process_image.empty)
+        cv.createTrackbar('Threshold2', 'Parameters', defaultTh2, 255, process_image.empty)
+        cv.createTrackbar('HUE Min', 'Parameters', defaultHueMin, 360, process_image.empty)
+        cv.createTrackbar('HUE Max', 'Parameters', defaultHueMax, 360, process_image.empty)
+        cv.createTrackbar('SAT Min', 'Parameters', defaultSatMin, 255, process_image.empty)
+        cv.createTrackbar('SAT Max', 'Parameters', defaultSatMax, 255, process_image.empty)
+        cv.createTrackbar('VALUE Min', 'Parameters', defaultValueMin, 255, process_image.empty)
+        cv.createTrackbar('VALUE Max', 'Parameters', defaultValueMax, 255, process_image.empty)
+        cv.createTrackbar('Brightness', 'Parameters', defaultBrightness, 2 * 255, process_image.empty)
+        cv.createTrackbar('Contrast', 'Parameters', defaultContrast, 2 * 127, process_image.empty)
 
-
-VideoWriterWidget()
+MainThread()
 
