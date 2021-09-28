@@ -3,48 +3,78 @@ from pymavlink import mavutil
 from threading import Thread
 from  Objects import Rectangle
 from Objects import Circle
-from dronekit import connect
+from dronekit import *
 import process_image
 import cv2 as cv
 import time
-# Create the connection
-# master = mavutil.mavlink_connection('udpin:10.42.0.1:10020')
-# vehicle = connect('/dev/ttyAMA0', wait_ready=True, baud=57600)
-#
-# Wait a heartbeat before sending commands
-# master.wait_heartbeat()
-#
-# Create a function to send RC values
-# More information about Joystick channels
-# here: https://www.ardusub.com/operators-manual/rc-input-and-output.html#rc-inputs
-# def set_rc_channel_pwm(channel_id, pwm=1500):
-#     """ Set RC channel pwm value
-#     Args:
-#         channel_id (TYPE): Channel ID
-#         pwm (int, optional): Channel pwm value 1100-1900
-#     """
-#     if channel_id < 1 or channel_id > 18:
-#         print("Channel does not exist.")
-#         return
-#
-# #     # Mavlink 2 supports up to 18 channels:
-# #     # https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
-# #     # 0xFFFF = 65535 means 16 bit
-#     rc_channel_values = [65535 for _ in range(18)]
-#     rc_channel_values[channel_id - 1] = pwm
-#     master.mav.rc_channels_override_send(
-#         master.target_system,                # target_system
-#         master.target_component,             # target_component
-#         *rc_channel_values)                  # RC channel list, in microseconds.
-#     master.mav.system_time_send(0,0)
+
+vehicle = connect('udp:10.42.0.243:14550', wait_ready=True)
+
+
 
 class MainThread(object):
+
+    # ARACI ÇALIŞTIRMAK İÇİN YORUMDAN ÇIKAR
+    def arm_and_takeoff(self,aTargetAltitude):
+        # """
+        # Arms vehicle and fly to aTargetAltitude.
+        # """
+        #
+        # print("Basic pre-arm checks")
+        # # Don't try to arm until autopilot is ready
+        # while not vehicle.is_armable:
+        #     print(" Waiting for vehicle to initialise...")
+        #     time.sleep(1)
+        #
+        # print("Arming motors")
+        # # Copter should arm in GUIDED mode
+        # vehicle.mode = VehicleMode("GUIDED")
+        # vehicle.armed = True
+        #
+        # # Confirm vehicle armed before attempting to take off
+        # while not vehicle.armed:
+        #     print(" Waiting for arming...")
+        #     time.sleep(1)
+        #
+        # print("Taking off!")
+        # vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
+        #
+        # # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
+        # #  after Vehicle.simple_takeoff will execute immediately).
+        # while True:
+        #     print(" Altitude: "+ vehicle.location.global_relative_frame.alt)
+        #     # Break and return from function just below target altitude.
+        #     if vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.95:
+        #         print("Reached target altitude")
+        #         break
+        #     time.sleep(1)
+        pass
+    # ARACI ÇALIŞTIRMAK İÇİN YORUMDAN ÇIKAR
+    def send_ned_velocity(self,velocity_x, velocity_y, velocity_z, yaw_velocity, duration):
+        # """
+        # Move vehicle in direction based on specified velocity vectors.
+        # """
+        # msg = vehicle.message_factory.set_position_target_local_ned_encode(
+        #     0,  # time_boot_ms (not used)
+        #     0, 0,  # target system, target component
+        #     mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame
+        #     0b0000111111000111,  # type_mask (only speeds enabled)
+        #     0, 0, 0,  # x, y, z positions (not used)
+        #     velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
+        #     0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+        #     yaw_velocity, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+        #
+        # # send command to vehicle on 1 Hz cycle
+        # for x in range(0, duration):
+        #     vehicle.send_mavlink(msg)
+        #     time.sleep(1)
+        pass
+
     def __init__(self):
         # Create a VideoCapture objectw
         self.capture = cv.VideoCapture(0)
         self.capture.set(cv.CAP_PROP_FRAME_WIDTH,320)
         self.capture.set(cv.CAP_PROP_FRAME_HEIGHT,240)
-
 
         # Default resolutions of the frame are obtained (system dependent)
         # Start the thread to read frames from the video stream
@@ -84,24 +114,17 @@ class MainThread(object):
 
         while current_time - initialize_time<=10 and circle.lock != True and door.lock != True:
             current_time = time.time()
-            #depth
-            if current_time - initialize_time<= 4:
-                self.move(3,1400)
-                print("asagı scan")
+            # Vehicle taking off target altitude
+            self.arm_and_takeoff(-20)
+            print("asagı scan")
+
             #forward
-            elif current_time - initialize_time <= 8:
-                self.move(5,1900)
-                print("ileri scan")
+            print("ileri scan")
+            self.send_ned_velocity(0,0,10,4)
+
             #yaw
-            elif current_time - initialize_time <= 10:
-                self.move(4,1200)
-                print("donus scan")
-
-
-
-    def move(self,channel, power):
-        pass
-        # set_rc_channel_pwm(channel, power)
+            self.send_ned_velocity(0,0,0,10,2)
+            print("donus scan")
 
     def first_mission(self,door,frame):
         process_image.Rectangle_process(frame, door)
