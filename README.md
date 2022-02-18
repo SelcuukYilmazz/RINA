@@ -10,5 +10,7 @@ If you need to detect Circle Shapes then start the code with argument ```2```
 
 In both case you should set trackbars to detect shapes properly
 
+Image of RINA is below
+
 
 ![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/17122b74-f121-4fc5-b184-9a878ae9a327.jpg?raw=true)
