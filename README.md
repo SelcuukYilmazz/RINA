@@ -1,7 +1,7 @@
 # RINA
 
 ## Description:
-RINA is an Autonomous Underwater Vehicle (AUV) project. It is written in python, used OpenCV and Thread libraries. With threading we can control motors and camera in syncronization. Project is under progress and that is not final form of code.
+RINA is an Autonomous Underwater Vehicle (AUV) project. It is written in python, used OpenCV and Thread libraries. With threading we can control motors and camera in syncronization. Project is finished due to some economical and school problems. But as a team we are still learning and we still want to build our own professional AUV in the future
 
 ## How To Use:
 If you need to detect Rectangle Shapes then start the code with argument ```1```
