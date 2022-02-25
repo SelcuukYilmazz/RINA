@@ -14,3 +14,36 @@ Image of RINA is below
 
 
 ![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/17122b74-f121-4fc5-b184-9a878ae9a327.jpg?raw=true)
+
+
+
+
+## Image Process Tests:
+The Algorithm is trying to get the blue dot to center of white circle. White circle is in front of camera.
+
+![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/Image_Process.png)
+
+
+## Underwater Scenario Test:
+Algorithm successfully find circle in underwater video.
+
+![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/Test1.png)
+
+
+## Movement Scenario Test:
+Algorithm successfully move RINA according to vision. This movement scenario tested on QGC and simulations.
+
+![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/Test2.png)
+
+
+## Search Algorithm for Mission-1:
+![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/Mission-1.png)
+
+
+## Search Algorithm for Mission-2:
+![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/Mission-2.png)
+
+
+## Search Algorithm for Mission-3:
+![alt text](https://github.com/SelcuukYilmazz/RINA/blob/main/Images/Mission-3.png)
+
